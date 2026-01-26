@@ -2,6 +2,7 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
+import { Layers } from "lucide-react";
 
 // Colors from V2 Design System
 const data = [
@@ -14,11 +15,14 @@ const data = [
 
 export function StockChart() {
     return (
-        <Card className="h-full flex flex-col">
-            <CardHeader className="border-none pb-2">
-                <CardTitle className="text-sm uppercase tracking-wider text-text-secondary">Resource Distribution</CardTitle>
+        <Card className="h-full flex flex-col group hover:border-border transition-colors">
+            <CardHeader className="border-none pb-3">
+                <CardTitle className="text-sm uppercase tracking-wider text-text-secondary flex items-center gap-2">
+                    <Layers className="h-4 w-4 text-primary" />
+                    Resource Distribution
+                </CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 min-h-[250px] p-0">
+            <CardContent className="flex-1 min-h-[250px] p-4 pt-0">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
@@ -36,7 +40,15 @@ export function StockChart() {
                             ))}
                         </Pie>
                         <Tooltip
-                            contentStyle={{ backgroundColor: '#1E2D21', borderColor: '#3D5442', color: '#E8F5E9', borderRadius: '0.75rem' }}
+                            contentStyle={{
+                                backgroundColor: '#1E2D21',
+                                borderColor: '#3D5442',
+                                color: '#E8F5E9',
+                                borderRadius: '12px',
+                                padding: '8px 12px',
+                                fontSize: '12px',
+                                fontFamily: 'var(--font-mono)'
+                            }}
                             itemStyle={{ color: '#E8F5E9' }}
                             formatter={(value: any) => [`${value} units`, '']}
                         />
