@@ -1,124 +1,53 @@
 "use client";
 
 import { Clock, Search, ChevronDown } from "lucide-react";
-
-interface Material {
-  id: number;
-  type: string;
-  category: string;
-  quantity: string;
-  maxCapacity: number;
-  currentAmount: number;
-  location: string;
-  updated: string;
-  status: "good" | "low" | "critical" | "warning";
-}
-
-const inventory: Material[] = [
-  {
-    id: 1,
-    type: "Concrete Rubble",
-    category: "construction",
-    quantity: "450 kg",
-    maxCapacity: 500,
-    currentAmount: 450,
-    location: "Sector A",
-    updated: "2m ago",
-    status: "good"
-  },
-  {
-    id: 2,
-    type: "Timber Beams",
-    category: "construction",
-    quantity: "12 units",
-    maxCapacity: 50,
-    currentAmount: 12,
-    location: "Sector B",
-    updated: "15m ago",
-    status: "low"
-  },
-  {
-    id: 3,
-    type: "Water (Potable)",
-    category: "water",
-    quantity: "120 L",
-    maxCapacity: 2000,
-    currentAmount: 120,
-    location: "Base Camp",
-    updated: "Just now",
-    status: "critical"
-  },
-  {
-    id: 4,
-    type: "Metal Scraps",
-    category: "construction",
-    quantity: "85 kg",
-    maxCapacity: 100,
-    currentAmount: 85,
-    location: "Sector A",
-    updated: "1h ago",
-    status: "good"
-  },
-  {
-    id: 5,
-    type: "Plastic Sheeting",
-    category: "construction",
-    quantity: "4 rolls",
-    maxCapacity: 5,
-    currentAmount: 4,
-    location: "Sector C",
-    updated: "3h ago",
-    status: "good"
-  },
-  {
-    id: 6,
-    type: "Aggregates",
-    category: "construction",
-    quantity: "1200 kg",
-    maxCapacity: 1500,
-    currentAmount: 1200,
-    location: "Sector D",
-    updated: "5m ago",
-    status: "good"
-  },
-  {
-    id: 7,
-    type: "Fuel (Diesel)",
-    category: "fuel",
-    quantity: "40 L",
-    maxCapacity: 200,
-    currentAmount: 40,
-    location: "Generator 1",
-    updated: "10m ago",
-    status: "warning"
-  },
-];
+import { useEffect, useState } from "react";
+import { fetchInventory, Material } from "@/lib/api";
 
 interface InventoryTableProps {
   selectedCategory?: string;
 }
 
 export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps) {
+  const [inventory, setInventory] = useState<Material[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const data = await fetchInventory();
+        setInventory(data);
+      } catch (error) {
+        console.error("Failed to load inventory:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
   // Filter inventory based on selected category
   const filteredInventory = selectedCategory === "all"
     ? inventory
     : inventory.filter(item => item.category === selectedCategory);
 
-  // Calculate percentage and determine color
-  const getStockLevel = (current: number, max: number) => {
-    const percentage = (current / max) * 100;
-    let color = "#4ADE80"; // Success green (healthy stock)
-    let bgColor = "rgba(74, 222, 128, 0.1)";
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-    if (percentage < 10) {
-      color = "#F87171"; // Danger red (critical)
-      bgColor = "rgba(248, 113, 113, 0.1)";
-    } else if (percentage < 25) {
-      color = "#FBBF24"; // Warning yellow (low stock)
-      bgColor = "rgba(251, 191, 36, 0.1)";
+  // Reset page when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedInventory = filteredInventory.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
-
-    return { percentage, color, bgColor };
   };
 
   return (
@@ -184,8 +113,27 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
             </tr>
           </thead>
           <tbody>
-            {filteredInventory.map((item, index) => {
-              const { percentage, color, bgColor } = getStockLevel(item.currentAmount, item.maxCapacity);
+            {paginatedInventory.map((item, index) => {
+              // Calculate percentage and determine color
+              const getStockLevel = (current: number, max: number) => {
+                // Avoid division by zero
+                const safeMax = max > 0 ? max : current;
+                const percentage = max > 0 ? (current / max) * 100 : 100;
+
+                let color = "#4ADE80"; // Success green (healthy stock)
+                let bgColor = "rgba(74, 222, 128, 0.1)";
+
+                if (percentage < 10) {
+                  color = "#F87171"; // Danger red (critical)
+                  bgColor = "rgba(248, 113, 113, 0.1)";
+                } else if (percentage < 25) {
+                  color = "#FBBF24"; // Warning yellow (low stock)
+                  bgColor = "rgba(251, 191, 36, 0.1)";
+                }
+
+                return { percentage, color, bgColor };
+              };
+              const { percentage, color, bgColor } = getStockLevel(item.currentAmount, item.requiredAmount);
 
               return (
                 <tr
@@ -213,7 +161,7 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
                         {item.quantity}
                       </span>
                       <span className="text-text-muted text-[0.75rem] font-mono">
-                        / {item.maxCapacity} max
+                        / {item.requiredAmount} required
                       </span>
                     </div>
                   </td>
@@ -221,7 +169,6 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
                   {/* Stock Level Progress Bar */}
                   <td className="py-4 px-4">
                     <div className="w-full">
-                      {/* Progress Bar Container */}
                       <div
                         className="h-6 rounded-full overflow-hidden relative"
                         style={{
@@ -295,25 +242,37 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
       {filteredInventory.length > 0 && (
         <div className="mt-6 pt-6 border-t border-border-subtle flex items-center justify-between">
           <p className="text-text-muted text-[0.75rem]">
-            Showing <span className="text-text-secondary font-semibold">{filteredInventory.length}</span> of{" "}
-            <span className="text-text-secondary font-semibold">{inventory.length}</span> materials
+            Showing <span className="text-text-secondary font-semibold">{paginatedInventory.length > 0 ? startIndex + 1 : 0}</span> to <span className="text-text-secondary font-semibold">{Math.min(startIndex + itemsPerPage, filteredInventory.length)}</span> of{" "}
+            <span className="text-text-secondary font-semibold">{filteredInventory.length}</span> materials
           </p>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-text-secondary text-sm border border-border-subtle rounded-lg hover:border-border hover:text-text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 text-text-secondary text-sm border border-border-subtle rounded-lg hover:border-border hover:text-text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Previous
             </button>
             <div className="flex items-center gap-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-text-inverse text-sm font-semibold">
-                1
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary text-sm hover:bg-surface-elevated transition-colors">
-                2
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary text-sm hover:bg-surface-elevated transition-colors">
-                3
-              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-semibold transition-colors
+                            ${page === currentPage
+                      ? "bg-primary text-text-inverse"
+                      : "text-text-secondary hover:bg-surface-elevated"
+                    }`}
+                >
+                  {page}
+                </button>
+              ))}
             </div>
-            <button className="px-3 py-1.5 text-text-secondary text-sm border border-border-subtle rounded-lg hover:border-border hover:text-text-primary transition-all">
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 text-text-secondary text-sm border border-border-subtle rounded-lg hover:border-border hover:text-text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Next
             </button>
           </div>
@@ -322,3 +281,4 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
     </div>
   );
 }
+
