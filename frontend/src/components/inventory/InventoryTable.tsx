@@ -1,8 +1,19 @@
 "use client";
 
-import { Clock, Search, ChevronDown } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Clock, Search, ChevronDown, MapPin } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import { fetchInventory, Material } from "@/lib/api";
+
+interface GroupedMaterial {
+  type: string;
+  category: string;
+  totalCurrentAmount: number;
+  totalRequiredAmount: number;
+  unit: string;
+  locations: { location: string; currentAmount: number; requiredAmount: number }[];
+  latestUpdate: string;
+  status: "good" | "low" | "critical" | "warning";
+}
 
 interface InventoryTableProps {
   selectedCategory?: string;
@@ -31,6 +42,47 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
     ? inventory
     : inventory.filter(item => item.category === selectedCategory);
 
+  // Group materials by type
+  const groupedInventory = useMemo(() => {
+    const groups = new Map<string, GroupedMaterial>();
+
+    filteredInventory.forEach(item => {
+      const existing = groups.get(item.type);
+
+      if (existing) {
+        existing.totalCurrentAmount += item.currentAmount;
+        existing.totalRequiredAmount += item.requiredAmount;
+        existing.locations.push({
+          location: item.location,
+          currentAmount: item.currentAmount,
+          requiredAmount: item.requiredAmount
+        });
+        // Keep the worst status
+        const statusPriority = { critical: 0, warning: 1, low: 2, good: 3 };
+        if (statusPriority[item.status] < statusPriority[existing.status]) {
+          existing.status = item.status;
+        }
+      } else {
+        groups.set(item.type, {
+          type: item.type,
+          category: item.category,
+          totalCurrentAmount: item.currentAmount,
+          totalRequiredAmount: item.requiredAmount,
+          unit: item.unit,
+          locations: [{
+            location: item.location,
+            currentAmount: item.currentAmount,
+            requiredAmount: item.requiredAmount
+          }],
+          latestUpdate: item.updated,
+          status: item.status
+        });
+      }
+    });
+
+    return Array.from(groups.values());
+  }, [filteredInventory]);
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -39,10 +91,10 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
     setCurrentPage(1);
   }, [selectedCategory]);
 
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
+  // Calculate pagination using grouped inventory
+  const totalPages = Math.ceil(groupedInventory.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedInventory = filteredInventory.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedInventory = groupedInventory.slice(startIndex, startIndex + itemsPerPage);
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -67,7 +119,7 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
             Material List
           </h2>
           <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-mono font-semibold">
-            {filteredInventory.length} items
+            {groupedInventory.length} items
           </span>
         </div>
 
@@ -115,10 +167,9 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
           <tbody>
             {paginatedInventory.map((item, index) => {
               // Calculate percentage and determine color
-              const getStockLevel = (current: number, max: number) => {
-                // Avoid division by zero
-                const safeMax = max > 0 ? max : current;
-                const percentage = max > 0 ? (current / max) * 100 : 100;
+              const getStockLevel = (current: number, required: number) => {
+                const safeRequired = required > 0 ? required : current;
+                const percentage = required > 0 ? (current / required) * 100 : 100;
 
                 let color = "#4ADE80"; // Success green (healthy stock)
                 let bgColor = "rgba(74, 222, 128, 0.1)";
@@ -133,11 +184,11 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
 
                 return { percentage, color, bgColor };
               };
-              const { percentage, color, bgColor } = getStockLevel(item.currentAmount, item.requiredAmount);
+              const { percentage, color, bgColor } = getStockLevel(item.totalCurrentAmount, item.totalRequiredAmount);
 
               return (
                 <tr
-                  key={item.id}
+                  key={item.type}
                   className="border-b border-border-subtle hover:bg-surface-elevated transition-all group cursor-pointer"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
@@ -158,10 +209,10 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
                   <td className="py-4 px-4">
                     <div className="flex flex-col gap-1">
                       <span className="text-text-primary font-mono text-[0.875rem] font-semibold">
-                        {item.quantity}
+                        {item.totalCurrentAmount} {item.unit}
                       </span>
                       <span className="text-text-muted text-[0.75rem] font-mono">
-                        / {item.requiredAmount} required
+                        / {item.totalRequiredAmount} required
                       </span>
                     </div>
                   </td>
@@ -200,11 +251,21 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
                     </div>
                   </td>
 
-                  {/* Location */}
+                  {/* Locations */}
                   <td className="py-4 px-4">
-                    <span className="text-text-secondary text-[0.875rem]">
-                      {item.location}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      {item.locations.map((loc, locIndex) => (
+                        <div key={locIndex} className="flex items-center gap-2">
+                          <MapPin className="w-3 h-3 text-text-muted flex-shrink-0" />
+                          <span className="text-text-secondary text-[0.875rem]">
+                            {loc.location}
+                          </span>
+                          <span className="text-text-muted text-[0.75rem] font-mono">
+                            ({loc.currentAmount} {item.unit})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </td>
 
                   {/* Last Update */}
@@ -212,7 +273,7 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
                     <div className="flex items-center gap-2 text-text-muted">
                       <Clock className="w-3 h-3" />
                       <span className="text-[0.75rem]">
-                        {item.updated}
+                        {item.latestUpdate}
                       </span>
                     </div>
                   </td>
@@ -223,7 +284,7 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
         </table>
 
         {/* Empty State */}
-        {filteredInventory.length === 0 && (
+        {groupedInventory.length === 0 && (
           <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-surface-elevated mb-4">
               <Search className="w-8 h-8 text-text-muted" />
@@ -239,11 +300,11 @@ export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps
       </div>
 
       {/* Table Footer */}
-      {filteredInventory.length > 0 && (
+      {groupedInventory.length > 0 && (
         <div className="mt-6 pt-6 border-t border-border-subtle flex items-center justify-between">
           <p className="text-text-muted text-[0.75rem]">
-            Showing <span className="text-text-secondary font-semibold">{paginatedInventory.length > 0 ? startIndex + 1 : 0}</span> to <span className="text-text-secondary font-semibold">{Math.min(startIndex + itemsPerPage, filteredInventory.length)}</span> of{" "}
-            <span className="text-text-secondary font-semibold">{filteredInventory.length}</span> materials
+            Showing <span className="text-text-secondary font-semibold">{paginatedInventory.length > 0 ? startIndex + 1 : 0}</span> to <span className="text-text-secondary font-semibold">{Math.min(startIndex + itemsPerPage, groupedInventory.length)}</span> of{" "}
+            <span className="text-text-secondary font-semibold">{groupedInventory.length}</span> materials
           </p>
           <div className="flex items-center gap-2">
             <button

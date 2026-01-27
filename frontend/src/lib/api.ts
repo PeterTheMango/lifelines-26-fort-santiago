@@ -5,6 +5,7 @@ export interface Material {
     type: string;
     category: string;
     quantity: string;
+    unit: string;
     maxCapacity: number;
     currentAmount: number;
     requiredAmount: number;

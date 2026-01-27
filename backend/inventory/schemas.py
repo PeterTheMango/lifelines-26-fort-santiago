@@ -36,7 +36,7 @@ class InventoryItemCreate(BaseModel):
 
 class InventoryItemResponse(InventoryItemBase):
     id: int
-    unit: str = Field(exclude=True) # Used for computation but excluded from output if not needed, but let's keep it hidden
+    unit: str
     lat: float = Field(exclude=True)
     lng: float = Field(exclude=True)
     updated_at: datetime = Field(exclude=True)
