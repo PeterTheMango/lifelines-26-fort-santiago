@@ -37,6 +37,57 @@ Example structure (to be populated as projects are added):
 
 ## 🚀 Getting Started
 
+### Clone the Repository
+
+```bash
+git clone https://github.com/your-org/lifelines-26-fort-santiago.git
+cd lifelines-26-fort-santiago
+```
+
+### Prerequisites
+
+Before running the application, ensure you have the following installed:
+
+- **Python** (3.10+) - [Download Python](https://www.python.org/downloads/)
+- **Bun** - [Install Bun](https://bun.sh/)
+
+### Frontend Setup
+
+```bash
+cd frontend
+bun install
+```
+
+Create a `.env` file in the `frontend` directory with your Mapbox token:
+
+```bash
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
+```
+
+You can obtain a Mapbox token from [Mapbox Access Tokens](https://account.mapbox.com/access-tokens/).
+
+Then run the development server:
+
+```bash
+bun run dev
+```
+
+### Backend Setup
+
+```bash
+cd backend/inventory
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+### Access the Platform
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to interact with the platform.
+
+---
+
 To work with a specific component:
 
 1. Navigate to the relevant folder: `cd <folder-name>`

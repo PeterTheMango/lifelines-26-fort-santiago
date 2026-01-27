@@ -1,0 +1,16 @@
+{
+  "name": "CrisisBuild",
+  "short_name": "CrisisBuild",
+  "description": "Offline Sustainable Reconstruction Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "icons": [
+    {
+      "src": "/globe.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
