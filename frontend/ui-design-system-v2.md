@@ -8,18 +8,19 @@ This document outlines the visual and functional design language for **CrisisBui
 
 ### Core Principles
 
-| Principle | Description |
-|-----------|-------------|
-| **Offline-First** | UI components must function without external assets or connectivity. All fonts, icons, and assets are bundled in the PWA. |
-| **Humanitarian Warmth** | The interface should feel approachable and human—not militaristic or cold. Users are rebuilding lives, not running combat operations. |
-| **Thoughtful Utility** | Every element serves a purpose, but small details (rounded corners, gentle transitions, considered spacing) show care and build trust. |
-| **Touch-Optimized** | Large tap targets (minimum 48x48px) accommodate users with gloves, dirty hands, or fine motor impairment. |
-| **Low-Literacy Accessible** | Icons and color coding supplement text. Critical information is conveyed through multiple channels (color + icon + position). |
-| **Multilingual-Ready** | Typography and layout accommodate RTL languages, variable text lengths, and non-Latin scripts from day one. |
+| Principle                   | Description                                                                                                                            |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Offline-First**           | UI components must function without external assets or connectivity. All fonts, icons, and assets are bundled in the PWA.              |
+| **Humanitarian Warmth**     | The interface should feel approachable and human—not militaristic or cold. Users are rebuilding lives, not running combat operations.  |
+| **Thoughtful Utility**      | Every element serves a purpose, but small details (rounded corners, gentle transitions, considered spacing) show care and build trust. |
+| **Touch-Optimized**         | Large tap targets (minimum 48x48px) accommodate users with gloves, dirty hands, or fine motor impairment.                              |
+| **Low-Literacy Accessible** | Icons and color coding supplement text. Critical information is conveyed through multiple channels (color + icon + position).          |
+| **Multilingual-Ready**      | Typography and layout accommodate RTL languages, variable text lengths, and non-Latin scripts from day one.                            |
 
 ### Emotional Goals
 
 The interface should evoke:
+
 - **Groundedness** — Stability in chaos, like a well-organized field kit
 - **Renewal** — Growth and recovery, not just survival
 - **Competence** — Professional enough for NGO coordinators, approachable enough for community volunteers
@@ -32,39 +33,39 @@ The palette is optimized for **Dark Mode** to conserve battery life on mobile OL
 
 ### Primary Palette
 
-| Role | Hex Code | RGB | Application |
-|------|----------|-----|-------------|
-| **Background** | `#0C1810` | 12, 24, 16 | Main app background (Deep Forest) |
-| **Surface** | `#162118` | 22, 33, 24 | Card backgrounds, navigation bars, elevated surfaces |
-| **Surface Elevated** | `#1E2D21` | 30, 45, 33 | Modal backgrounds, dropdown menus, hover states |
-| **Border Subtle** | `#2A3D2E` | 42, 61, 46 | Dividers, subtle separators |
-| **Border Default** | `#3D5442` | 61, 84, 66 | Input borders, card outlines |
+| Role                 | Hex Code  | RGB        | Application                                          |
+| -------------------- | --------- | ---------- | ---------------------------------------------------- |
+| **Background**       | `#0C1810` | 12, 24, 16 | Main app background (Deep Forest)                    |
+| **Surface**          | `#162118` | 22, 33, 24 | Card backgrounds, navigation bars, elevated surfaces |
+| **Surface Elevated** | `#1E2D21` | 30, 45, 33 | Modal backgrounds, dropdown menus, hover states      |
+| **Border Subtle**    | `#2A3D2E` | 42, 61, 46 | Dividers, subtle separators                          |
+| **Border Default**   | `#3D5442` | 61, 84, 66 | Input borders, card outlines                         |
 
 ### Accent Colors
 
-| Role | Hex Code | RGB | Application |
-|------|----------|-----|-------------|
+| Role               | Hex Code  | RGB          | Application                                          |
+| ------------------ | --------- | ------------ | ---------------------------------------------------- |
 | **Primary (Teal)** | `#2DD4BF` | 45, 212, 191 | Primary actions, active states, interactive elements |
-| **Primary Muted** | `#14B8A6` | 20, 184, 166 | Secondary emphasis, visited links |
-| **Primary Subtle** | `#0D9488` | 13, 148, 136 | Tertiary actions, subtle highlights |
+| **Primary Muted**  | `#14B8A6` | 20, 184, 166 | Secondary emphasis, visited links                    |
+| **Primary Subtle** | `#0D9488` | 13, 148, 136 | Tertiary actions, subtle highlights                  |
 
 ### Semantic Colors
 
-| Role | Hex Code | RGB | Application |
-|------|----------|-----|-------------|
-| **Success** | `#4ADE80` | 74, 222, 128 | "Brain" active, Signal strong, Systems operational |
-| **Warning** | `#FBBF24` | 251, 191, 36 | Low battery, Low stock (<25%), Weak signal |
-| **Danger** | `#F87171` | 248, 113, 113 | Offline nodes, Critical stock (<10%), Hardware failure |
-| **Info** | `#60A5FA` | 96, 165, 250 | Informational banners, AI responses, help text |
+| Role        | Hex Code  | RGB           | Application                                            |
+| ----------- | --------- | ------------- | ------------------------------------------------------ |
+| **Success** | `#4ADE80` | 74, 222, 128  | "Brain" active, Signal strong, Systems operational     |
+| **Warning** | `#FBBF24` | 251, 191, 36  | Low battery, Low stock (<25%), Weak signal             |
+| **Danger**  | `#F87171` | 248, 113, 113 | Offline nodes, Critical stock (<10%), Hardware failure |
+| **Info**    | `#60A5FA` | 96, 165, 250  | Informational banners, AI responses, help text         |
 
 ### Text Colors
 
-| Role | Hex Code | Application |
-|------|----------|-------------|
-| **Text Primary** | `#E8F5E9` | Primary body text, headings |
-| **Text Secondary** | `#A7C4AA` | Secondary labels, helper text, timestamps |
-| **Text Muted** | `#6B8B6F` | Disabled text, placeholders |
-| **Text Inverse** | `#0C1810` | Text on light backgrounds (buttons, badges) |
+| Role               | Hex Code  | Application                                 |
+| ------------------ | --------- | ------------------------------------------- |
+| **Text Primary**   | `#E8F5E9` | Primary body text, headings                 |
+| **Text Secondary** | `#A7C4AA` | Secondary labels, helper text, timestamps   |
+| **Text Muted**     | `#6B8B6F` | Disabled text, placeholders                 |
+| **Text Inverse**   | `#0C1810` | Text on light backgrounds (buttons, badges) |
 
 ### Color Usage Guidelines
 
@@ -81,10 +82,10 @@ A hybrid approach balancing **character** with **practical constraints**. The pr
 
 ### Font Stack
 
-| Role | Font | Fallback | Usage |
-|------|------|----------|-------|
-| **Display** | `Nunito Sans` | `system-ui, sans-serif` | Page titles, hero text, navigation labels |
-| **Body** | `Nunito Sans` | `system-ui, sans-serif` | Body text, descriptions, instructions |
+| Role          | Font              | Fallback                  | Usage                                                            |
+| ------------- | ----------------- | ------------------------- | ---------------------------------------------------------------- |
+| **Display**   | `Nunito Sans`     | `system-ui, sans-serif`   | Page titles, hero text, navigation labels                        |
+| **Body**      | `Nunito Sans`     | `system-ui, sans-serif`   | Body text, descriptions, instructions                            |
 | **Technical** | `Source Code Pro` | `ui-monospace, monospace` | Inventory quantities, sensor readings, coordinates, AI citations |
 
 ### Why Nunito Sans?
@@ -99,16 +100,16 @@ A hybrid approach balancing **character** with **practical constraints**. The pr
 
 Based on a 1.25 ratio (Major Third) with a 16px base. All sizes in `rem` for accessibility scaling.
 
-| Name | Size | Weight | Line Height | Letter Spacing | Usage |
-|------|------|--------|-------------|----------------|-------|
-| **Display** | 2rem (32px) | 700 | 1.2 | -0.02em | Page titles only |
-| **Heading 1** | 1.563rem (25px) | 600 | 1.3 | -0.01em | Section headers |
-| **Heading 2** | 1.25rem (20px) | 600 | 1.4 | 0 | Card titles, modal headers |
-| **Heading 3** | 1rem (16px) | 600 | 1.4 | 0 | Subsection labels |
-| **Body** | 1rem (16px) | 400 | 1.6 | 0 | Default body text |
-| **Body Small** | 0.875rem (14px) | 400 | 1.5 | 0 | Secondary text, captions |
-| **Caption** | 0.75rem (12px) | 500 | 1.4 | 0.02em | Timestamps, badges, labels |
-| **Mono** | 0.875rem (14px) | 400 | 1.4 | 0 | Technical data, quantities |
+| Name           | Size            | Weight | Line Height | Letter Spacing | Usage                      |
+| -------------- | --------------- | ------ | ----------- | -------------- | -------------------------- |
+| **Display**    | 2rem (32px)     | 700    | 1.2         | -0.02em        | Page titles only           |
+| **Heading 1**  | 1.563rem (25px) | 600    | 1.3         | -0.01em        | Section headers            |
+| **Heading 2**  | 1.25rem (20px)  | 600    | 1.4         | 0              | Card titles, modal headers |
+| **Heading 3**  | 1rem (16px)     | 600    | 1.4         | 0              | Subsection labels          |
+| **Body**       | 1rem (16px)     | 400    | 1.6         | 0              | Default body text          |
+| **Body Small** | 0.875rem (14px) | 400    | 1.5         | 0              | Secondary text, captions   |
+| **Caption**    | 0.75rem (12px)  | 500    | 1.4         | 0.02em         | Timestamps, badges, labels |
+| **Mono**       | 0.875rem (14px) | 400    | 1.4         | 0              | Technical data, quantities |
 
 ### Typography Rules
 
@@ -126,27 +127,27 @@ Based on a 1.25 ratio (Major Third) with a 16px base. All sizes in `rem` for acc
 
 Based on 4px increments for consistent rhythm.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `space-0` | 0px | — |
-| `space-1` | 4px | Tight gaps, icon padding |
-| `space-2` | 8px | Inline element spacing, compact lists |
-| `space-3` | 12px | Standard gap between related elements |
-| `space-4` | 16px | Card padding, section spacing |
-| `space-5` | 20px | Comfortable breathing room |
-| `space-6` | 24px | Major section dividers |
-| `space-8` | 32px | Page section gaps |
-| `space-10` | 40px | Hero spacing, major visual breaks |
-| `space-12` | 48px | Minimum touch target size |
+| Token      | Value | Usage                                 |
+| ---------- | ----- | ------------------------------------- |
+| `space-0`  | 0px   | —                                     |
+| `space-1`  | 4px   | Tight gaps, icon padding              |
+| `space-2`  | 8px   | Inline element spacing, compact lists |
+| `space-3`  | 12px  | Standard gap between related elements |
+| `space-4`  | 16px  | Card padding, section spacing         |
+| `space-5`  | 20px  | Comfortable breathing room            |
+| `space-6`  | 24px  | Major section dividers                |
+| `space-8`  | 32px  | Page section gaps                     |
+| `space-10` | 40px  | Hero spacing, major visual breaks     |
+| `space-12` | 48px  | Minimum touch target size             |
 
 ### Border Radius
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `radius-sm` | 4px | Small elements, badges, chips |
-| `radius-md` | 8px | Buttons, inputs, cards |
-| `radius-lg` | 12px | Modals, large cards |
-| `radius-full` | 9999px | Circular elements, pills |
+| Token         | Value  | Usage                         |
+| ------------- | ------ | ----------------------------- |
+| `radius-sm`   | 4px    | Small elements, badges, chips |
+| `radius-md`   | 8px    | Buttons, inputs, cards        |
+| `radius-lg`   | 12px   | Modals, large cards           |
+| `radius-full` | 9999px | Circular elements, pills      |
 
 ### The "Bento" Grid System
 
@@ -189,11 +190,11 @@ Mobile (1-column stack):
 
 ### Grid Specifications
 
-| Breakpoint | Columns | Gutter | Container Max |
-|------------|---------|--------|---------------|
-| Mobile (<640px) | 1 | 16px | 100% |
-| Tablet (640px–1024px) | 2 | 20px | 960px |
-| Desktop (>1024px) | 3 | 24px | 1280px |
+| Breakpoint            | Columns | Gutter | Container Max |
+| --------------------- | ------- | ------ | ------------- |
+| Mobile (<640px)       | 1       | 16px   | 100%          |
+| Tablet (640px–1024px) | 2       | 20px   | 960px         |
+| Desktop (>1024px)     | 3       | 24px   | 1280px        |
 
 ---
 
@@ -204,18 +205,19 @@ Mobile (1-column stack):
 Status indicators provide instant feedback on system and resource health.
 
 **Status Badge**
+
 ```
 ┌──────────────────────────────┐
 │  ● Online                    │  ← Circular indicator + label
 └──────────────────────────────┘
 ```
 
-| State | Indicator Color | Animation | Icon |
-|-------|-----------------|-----------|------|
-| **Active/Online** | Success (`#4ADE80`) | Subtle pulse (2s ease-in-out) | Solid circle |
-| **Warning** | Warning (`#FBBF24`) | Faster pulse (1s) | Exclamation |
-| **Critical/Offline** | Danger (`#F87171`) | No pulse (static) | X mark |
-| **Unknown/Loading** | Text Muted (`#6B8B6F`) | Shimmer | Dotted circle |
+| State                | Indicator Color        | Animation                     | Icon          |
+| -------------------- | ---------------------- | ----------------------------- | ------------- |
+| **Active/Online**    | Success (`#4ADE80`)    | Subtle pulse (2s ease-in-out) | Solid circle  |
+| **Warning**          | Warning (`#FBBF24`)    | Faster pulse (1s)             | Exclamation   |
+| **Critical/Offline** | Danger (`#F87171`)     | No pulse (static)             | X mark        |
+| **Unknown/Loading**  | Text Muted (`#6B8B6F`) | Shimmer                       | Dotted circle |
 
 **Alert Banner**
 High-contrast banners for critical information. Always include a dismiss action.
@@ -226,18 +228,19 @@ High-contrast banners for critical information. Always include a dismiss action.
 └─────────────────────────────────────────────────────────┘
 ```
 
-| Severity | Background | Border | Icon |
-|----------|------------|--------|------|
-| **Critical** | `#F87171` at 15% opacity | `#F87171` left border (4px) | Warning triangle |
-| **Warning** | `#FBBF24` at 15% opacity | `#FBBF24` left border | Exclamation circle |
-| **Info** | `#60A5FA` at 15% opacity | `#60A5FA` left border | Info circle |
-| **Success** | `#4ADE80` at 15% opacity | `#4ADE80` left border | Check circle |
+| Severity     | Background               | Border                      | Icon               |
+| ------------ | ------------------------ | --------------------------- | ------------------ |
+| **Critical** | `#F87171` at 15% opacity | `#F87171` left border (4px) | Warning triangle   |
+| **Warning**  | `#FBBF24` at 15% opacity | `#FBBF24` left border       | Exclamation circle |
+| **Info**     | `#60A5FA` at 15% opacity | `#60A5FA` left border       | Info circle        |
+| **Success**  | `#4ADE80` at 15% opacity | `#4ADE80` left border       | Check circle       |
 
 ### 5.2 Cards (Bento Cells)
 
 Cards are the fundamental unit of the dashboard. Each card represents a discrete data domain.
 
 **Card Anatomy**
+
 ```
 ┌─────────────────────────────────────┐
 │ ┌─ Header ────────────────────────┐ │
@@ -254,15 +257,16 @@ Cards are the fundamental unit of the dashboard. Each card represents a discrete
 └─────────────────────────────────────┘
 ```
 
-| Property | Value |
-|----------|-------|
-| Background | Surface (`#162118`) |
-| Border | 1px solid Border Subtle (`#2A3D2E`) |
-| Border Radius | `radius-lg` (12px) |
-| Padding | `space-4` (16px) |
-| Header border | 1px solid Border Subtle (bottom) |
+| Property      | Value                               |
+| ------------- | ----------------------------------- |
+| Background    | Surface (`#162118`)                 |
+| Border        | 1px solid Border Subtle (`#2A3D2E`) |
+| Border Radius | `radius-lg` (12px)                  |
+| Padding       | `space-4` (16px)                    |
+| Header border | 1px solid Border Subtle (bottom)    |
 
 **Card States**
+
 - **Default**: As specified above
 - **Hover**: Border color transitions to Border Default (`#3D5442`)
 - **Active/Selected**: Border color transitions to Primary Muted (`#14B8A6`)
@@ -273,12 +277,14 @@ Cards are the fundamental unit of the dashboard. Each card represents a discrete
 The chat interface uses a **technical blueprint** visual language to convey precision and engineering credibility.
 
 **Visual Elements**
+
 - **Background texture**: Subtle grid pattern (1px lines at 20px intervals, `#1E2D21` on Surface)
 - **User messages**: Right-aligned, Surface Elevated background, rounded corners
 - **AI responses**: Left-aligned, transparent background with left border (Primary color)
 - **Citations**: Inline document icons with tooltip showing source title
 
 **AI Response Card**
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐ │
@@ -309,29 +315,30 @@ Show which materials the AI is considering for the plan.
 └───────────────┘  └───────────────┘  └───────────────┘
 ```
 
-| Property | Value |
-|----------|-------|
-| Background | Surface Elevated |
-| Border | 1px solid Border Default |
-| Border Radius | `radius-full` (pill) |
-| Padding | `space-1` vertical, `space-3` horizontal |
-| Typography | Caption, Text Secondary |
+| Property      | Value                                    |
+| ------------- | ---------------------------------------- |
+| Background    | Surface Elevated                         |
+| Border        | 1px solid Border Default                 |
+| Border Radius | `radius-full` (pill)                     |
+| Padding       | `space-1` vertical, `space-3` horizontal |
+| Typography    | Caption, Text Secondary                  |
 
 **Source Citation Button**
 Prevents hallucination concerns by showing provenance.
 
-| Property | Value |
-|----------|-------|
-| Icon | Document icon (16×16) |
-| Text | Source document title (truncated) |
+| Property    | Value                                      |
+| ----------- | ------------------------------------------ |
+| Icon        | Document icon (16×16)                      |
+| Text        | Source document title (truncated)          |
 | Interaction | Click opens modal with full source excerpt |
-| Visual | Info color, underline on hover |
+| Visual      | Info color, underline on hover             |
 
 ### 5.4 Network Health Map
 
 A real-time visualization of the LoRa mesh network topology.
 
 **Node Representation**
+
 ```
     ╭─────╮
     │ ○── │ ← Node with signal indicator
@@ -339,25 +346,26 @@ A real-time visualization of the LoRa mesh network topology.
     ╰─────╯
 ```
 
-| Node State | Fill Color | Border | Glow/Animation |
-|------------|------------|--------|----------------|
-| **Online (Strong)** | Primary (`#2DD4BF`) | None | Soft outer glow (8px blur) |
-| **Online (Weak)** | Primary Muted (`#14B8A6`) | None | No glow |
-| **Degraded** | Warning (`#FBBF24`) | None | Pulse animation |
-| **Offline** | Danger (`#F87171`) | 2px dashed | None |
-| **Brain Hub** | Success (`#4ADE80`) | 2px solid | Constant soft glow |
+| Node State          | Fill Color                | Border     | Glow/Animation             |
+| ------------------- | ------------------------- | ---------- | -------------------------- |
+| **Online (Strong)** | Primary (`#2DD4BF`)       | None       | Soft outer glow (8px blur) |
+| **Online (Weak)**   | Primary Muted (`#14B8A6`) | None       | No glow                    |
+| **Degraded**        | Warning (`#FBBF24`)       | None       | Pulse animation            |
+| **Offline**         | Danger (`#F87171`)        | 2px dashed | None                       |
+| **Brain Hub**       | Success (`#4ADE80`)       | 2px solid  | Constant soft glow         |
 
 **Mesh Edge (Connection Lines)**
 Lines between nodes represent signal strength (RSSI).
 
-| Signal Quality | Line Style | Color | Width |
-|----------------|------------|-------|-------|
-| **Excellent** (>-70 dBm) | Solid | Success | 2px |
-| **Good** (-70 to -85 dBm) | Solid | Primary | 2px |
-| **Fair** (-85 to -100 dBm) | Dashed | Warning | 1px |
-| **Poor** (<-100 dBm) | Dotted | Danger | 1px |
+| Signal Quality             | Line Style | Color   | Width |
+| -------------------------- | ---------- | ------- | ----- |
+| **Excellent** (>-70 dBm)   | Solid      | Success | 2px   |
+| **Good** (-70 to -85 dBm)  | Solid      | Primary | 2px   |
+| **Fair** (-85 to -100 dBm) | Dashed     | Warning | 1px   |
+| **Poor** (<-100 dBm)       | Dotted     | Danger  | 1px   |
 
 **Map Controls**
+
 - **Zoom**: Pinch gesture / scroll wheel / +/- buttons
 - **Pan**: Drag gesture
 - **Node details**: Tap/click node to show detail popover
@@ -367,22 +375,23 @@ Lines between nodes represent signal strength (RSSI).
 
 **Size Variants**
 
-| Size | Height | Padding | Typography | Min Width |
-|------|--------|---------|------------|-----------|
-| **Small** | 32px | 8px 12px | Body Small (14px) | 64px |
-| **Medium** | 40px | 10px 16px | Body (16px) | 80px |
-| **Large** | 48px | 12px 24px | Body (16px, 500 weight) | 96px |
+| Size       | Height | Padding   | Typography              | Min Width |
+| ---------- | ------ | --------- | ----------------------- | --------- |
+| **Small**  | 32px   | 8px 12px  | Body Small (14px)       | 64px      |
+| **Medium** | 40px   | 10px 16px | Body (16px)             | 80px      |
+| **Large**  | 48px   | 12px 24px | Body (16px, 500 weight) | 96px      |
 
 **Style Variants**
 
-| Variant | Background | Text | Border | Use Case |
-|---------|------------|------|--------|----------|
-| **Primary** | Primary (`#2DD4BF`) | Text Inverse | None | Main actions (Submit, Save) |
-| **Secondary** | Transparent | Primary | 1px Primary | Secondary actions |
-| **Ghost** | Transparent | Text Secondary | None | Tertiary actions, icon buttons |
-| **Danger** | Danger (`#F87171`) | Text Inverse | None | Destructive actions |
+| Variant       | Background          | Text           | Border      | Use Case                       |
+| ------------- | ------------------- | -------------- | ----------- | ------------------------------ |
+| **Primary**   | Primary (`#2DD4BF`) | Text Inverse   | None        | Main actions (Submit, Save)    |
+| **Secondary** | Transparent         | Primary        | 1px Primary | Secondary actions              |
+| **Ghost**     | Transparent         | Text Secondary | None        | Tertiary actions, icon buttons |
+| **Danger**    | Danger (`#F87171`)  | Text Inverse   | None        | Destructive actions            |
 
 **States**
+
 - **Hover**: Brightness +10%, subtle scale (1.02)
 - **Active**: Brightness -10%, scale (0.98)
 - **Disabled**: 50% opacity, cursor not-allowed
@@ -391,6 +400,7 @@ Lines between nodes represent signal strength (RSSI).
 ### 5.6 Form Inputs
 
 **Text Input**
+
 ```
 ┌─────────────────────────────────────┐
 │ Label                               │
@@ -401,17 +411,18 @@ Lines between nodes represent signal strength (RSSI).
 └─────────────────────────────────────┘
 ```
 
-| Property | Default | Focus | Error |
-|----------|---------|-------|-------|
-| Background | Surface Elevated | Surface Elevated | Surface Elevated |
-| Border | 1px Border Default | 2px Primary | 2px Danger |
-| Label | Text Secondary | Text Primary | Danger |
-| Height | 44px minimum | — | — |
+| Property   | Default            | Focus            | Error            |
+| ---------- | ------------------ | ---------------- | ---------------- |
+| Background | Surface Elevated   | Surface Elevated | Surface Elevated |
+| Border     | 1px Border Default | 2px Primary      | 2px Danger       |
+| Label      | Text Secondary     | Text Primary     | Danger           |
+| Height     | 44px minimum       | —                | —                |
 
 **Select/Dropdown**
 Same styling as text input with chevron icon on right.
 
 **Checkbox/Radio**
+
 - Size: 20×20px minimum (44px touch target with padding)
 - Checked state: Primary fill with white checkmark
 - Focus: 2px Primary outline with 2px offset
@@ -427,6 +438,7 @@ Traditional table layout with full columns and rows.
 Tables transform into individual cards, with the table header condensed into a streamlined control bar.
 
 **Mobile Table Header**
+
 ```
 ┌─────────────────────────────────────┐
 │ Inventory Materials                 │ ← Title (Heading 2)
@@ -438,14 +450,14 @@ Tables transform into individual cards, with the table header condensed into a s
 └─────────────────────────────────────┘
 ```
 
-| Property | Value |
-|----------|-------|
-| Container padding | `space-4` (16px) |
-| Title typography | Heading 2 (1.25rem, 600 weight) |
-| Count typography | Body Small (0.875rem), Text Secondary |
-| Title-to-count spacing | `space-1` (4px) |
-| Count-to-search spacing | `space-3` (12px) |
-| Search input height | 44px (touch-optimized) |
+| Property                | Value                                 |
+| ----------------------- | ------------------------------------- |
+| Container padding       | `space-4` (16px)                      |
+| Title typography        | Heading 2 (1.25rem, 600 weight)       |
+| Count typography        | Body Small (0.875rem), Text Secondary |
+| Title-to-count spacing  | `space-1` (4px)                       |
+| Count-to-search spacing | `space-3` (12px)                      |
+| Search input height     | 44px (touch-optimized)                |
 
 **Mobile Table Card (Row Transformation)**
 
@@ -468,18 +480,18 @@ Each table row becomes an individual card with vertical label-value pairs.
 └─────────────────────────────────────┘
 ```
 
-| Property | Value |
-|----------|-------|
-| Card background | Surface (`#162118`) |
-| Card border | 1px solid Border Subtle |
-| Card border radius | `radius-lg` (12px) |
-| Card padding | `space-4` (16px) |
-| Card-to-card spacing | `space-3` (12px) |
-| Header typography | Heading 3 (1rem, 600 weight) |
-| Label typography | Body Small (0.875rem, 500 weight), Text Secondary |
-| Value typography | Body (1rem), Text Primary |
-| Label-value spacing | Colon with single space, no line break |
-| Field-to-field spacing | `space-2` (8px) |
+| Property               | Value                                             |
+| ---------------------- | ------------------------------------------------- |
+| Card background        | Surface (`#162118`)                               |
+| Card border            | 1px solid Border Subtle                           |
+| Card border radius     | `radius-lg` (12px)                                |
+| Card padding           | `space-4` (16px)                                  |
+| Card-to-card spacing   | `space-3` (12px)                                  |
+| Header typography      | Heading 3 (1rem, 600 weight)                      |
+| Label typography       | Body Small (0.875rem, 500 weight), Text Secondary |
+| Value typography       | Body (1rem), Text Primary                         |
+| Label-value spacing    | Colon with single space, no line break            |
+| Field-to-field spacing | `space-2` (8px)                                   |
 
 **Mobile Card Anatomy**
 
@@ -524,6 +536,7 @@ Each table row becomes an individual card with vertical label-value pairs.
 **Field Priority Guidelines**
 
 When converting tables to mobile cards, prioritize fields in this order:
+
 1. **Primary identifier** (name, ID, title) → Card header
 2. **Key quantitative data** (quantity, amount, count)
 3. **Status/state** (online/offline, in stock/out of stock)
@@ -532,6 +545,7 @@ When converting tables to mobile cards, prioritize fields in this order:
 6. **Secondary metadata** (show selectively based on importance)
 
 **Search Behavior**
+
 - Search input filters cards in real-time
 - Empty state shows friendly "No results found" message with suggestion to clear filters
 - Search icon remains visible inside input (Lucide `Search` icon)
@@ -541,43 +555,45 @@ When converting tables to mobile cards, prioritize fields in this order:
 ## 6. Iconography
 
 ### Icon Set
+
 Use **Lucide Icons** (MIT license, consistent style, good coverage).
 
 ### Icon Sizing
 
-| Context | Size | Stroke Width |
-|---------|------|--------------|
-| **Inline with text** | 16×16 | 2px |
-| **Button icon** | 20×20 | 2px |
-| **Navigation** | 24×24 | 1.5px |
-| **Feature/Empty state** | 48×48 | 1px |
+| Context                 | Size  | Stroke Width |
+| ----------------------- | ----- | ------------ |
+| **Inline with text**    | 16×16 | 2px          |
+| **Button icon**         | 20×20 | 2px          |
+| **Navigation**          | 24×24 | 1.5px        |
+| **Feature/Empty state** | 48×48 | 1px          |
 
 ### Semantic Icons (Required)
 
-| Concept | Icon | Notes |
-|---------|------|-------|
-| Inventory | `Package` | — |
-| AI Architect | `BrainCircuit` or `Compass` | Blueprint/drafting feel |
-| Network | `Radio` or `Wifi` | — |
-| Settings | `Settings` | — |
-| Dashboard | `LayoutDashboard` | — |
-| Add/Create | `Plus` | — |
-| Edit | `Pencil` | — |
-| Delete | `Trash2` | — |
-| Warning | `AlertTriangle` | — |
-| Error | `XCircle` | — |
-| Success | `CheckCircle` | — |
-| Info | `Info` | — |
-| Water | `Droplet` | For water tank indicators |
-| Fuel | `Fuel` | — |
-| Materials | `Layers` | General rubble/aggregate |
-| Document | `FileText` | Source citations |
+| Concept      | Icon                        | Notes                     |
+| ------------ | --------------------------- | ------------------------- |
+| Inventory    | `Package`                   | —                         |
+| AI Architect | `BrainCircuit` or `Compass` | Blueprint/drafting feel   |
+| Network      | `Radio` or `Wifi`           | —                         |
+| Settings     | `Settings`                  | —                         |
+| Dashboard    | `LayoutDashboard`           | —                         |
+| Add/Create   | `Plus`                      | —                         |
+| Edit         | `Pencil`                    | —                         |
+| Delete       | `Trash2`                    | —                         |
+| Warning      | `AlertTriangle`             | —                         |
+| Error        | `XCircle`                   | —                         |
+| Success      | `CheckCircle`               | —                         |
+| Info         | `Info`                      | —                         |
+| Water        | `Droplet`                   | For water tank indicators |
+| Fuel         | `Fuel`                      | —                         |
+| Materials    | `Layers`                    | General rubble/aggregate  |
+| Document     | `FileText`                  | Source citations          |
 
 ---
 
 ## 7. Motion & Animation
 
 ### Principles
+
 - **Purposeful**: Animation should provide feedback or guide attention, never purely decorative
 - **Fast**: Most transitions 150-200ms; nothing over 300ms
 - **Subtle**: Ease-in-out curves, small movements (4-8px)
@@ -585,29 +601,31 @@ Use **Lucide Icons** (MIT license, consistent style, good coverage).
 
 ### Standard Transitions
 
-| Element | Duration | Easing | Property |
-|---------|----------|--------|----------|
-| Button hover | 150ms | ease-out | background-color, transform |
-| Card hover | 200ms | ease-out | border-color, box-shadow |
-| Modal open | 200ms | ease-out | opacity, transform (scale from 0.95) |
-| Toast enter | 200ms | ease-out | opacity, transform (slide from top) |
-| Page transition | 150ms | ease-in-out | opacity |
+| Element         | Duration | Easing      | Property                             |
+| --------------- | -------- | ----------- | ------------------------------------ |
+| Button hover    | 150ms    | ease-out    | background-color, transform          |
+| Card hover      | 200ms    | ease-out    | border-color, box-shadow             |
+| Modal open      | 200ms    | ease-out    | opacity, transform (scale from 0.95) |
+| Toast enter     | 200ms    | ease-out    | opacity, transform (slide from top)  |
+| Page transition | 150ms    | ease-in-out | opacity                              |
 
 ### Status Animations
 
-| Animation | Duration | Easing | Usage |
-|-----------|----------|--------|-------|
-| **Pulse (active)** | 2000ms | ease-in-out | Online status indicators |
-| **Pulse (warning)** | 1000ms | ease-in-out | Warning states needing attention |
-| **Shimmer** | 1500ms | linear | Loading skeletons |
-| **Spin** | 1000ms | linear | Loading spinners |
+| Animation           | Duration | Easing      | Usage                            |
+| ------------------- | -------- | ----------- | -------------------------------- |
+| **Pulse (active)**  | 2000ms   | ease-in-out | Online status indicators         |
+| **Pulse (warning)** | 1000ms   | ease-in-out | Warning states needing attention |
+| **Shimmer**         | 1500ms   | linear      | Loading skeletons                |
+| **Spin**            | 1000ms   | linear      | Loading spinners                 |
 
 ### CSS Implementation
 
 ```css
 /* Respect user preferences */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -616,14 +634,23 @@ Use **Lucide Icons** (MIT license, consistent style, good coverage).
 
 /* Status pulse */
 @keyframes pulse-active {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 /* Skeleton shimmer */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 ```
 
@@ -633,24 +660,24 @@ Use **Lucide Icons** (MIT license, consistent style, good coverage).
 
 ### WCAG 2.1 AA Compliance (Minimum)
 
-| Requirement | Implementation |
-|-------------|----------------|
-| **Color contrast** | 4.5:1 minimum for normal text, 3:1 for large text |
-| **Focus indicators** | Visible 2px outline on all interactive elements |
-| **Touch targets** | 44×44px minimum (48×48px preferred) |
-| **Text scaling** | UI must remain functional at 200% zoom |
-| **Screen reader** | All images have alt text; ARIA labels on icon-only buttons |
-| **Keyboard navigation** | Full functionality without mouse |
+| Requirement             | Implementation                                             |
+| ----------------------- | ---------------------------------------------------------- |
+| **Color contrast**      | 4.5:1 minimum for normal text, 3:1 for large text          |
+| **Focus indicators**    | Visible 2px outline on all interactive elements            |
+| **Touch targets**       | 44×44px minimum (48×48px preferred)                        |
+| **Text scaling**        | UI must remain functional at 200% zoom                     |
+| **Screen reader**       | All images have alt text; ARIA labels on icon-only buttons |
+| **Keyboard navigation** | Full functionality without mouse                           |
 
 ### Color Contrast Verification
 
-| Combination | Contrast Ratio | Pass? |
-|-------------|----------------|-------|
-| Text Primary on Background | 14.2:1 | AAA |
-| Text Secondary on Background | 7.8:1 | AAA |
-| Primary on Background | 9.1:1 | AAA |
-| Danger on Background | 6.2:1 | AA |
-| Warning on Background | 8.5:1 | AAA |
+| Combination                  | Contrast Ratio | Pass? |
+| ---------------------------- | -------------- | ----- |
+| Text Primary on Background   | 14.2:1         | AAA   |
+| Text Secondary on Background | 7.8:1          | AAA   |
+| Primary on Background        | 9.1:1          | AAA   |
+| Danger on Background         | 6.2:1          | AA    |
+| Warning on Background        | 8.5:1          | AAA   |
 
 ### Additional Guidelines
 
@@ -667,11 +694,11 @@ Use **Lucide Icons** (MIT license, consistent style, good coverage).
 ### Supported Languages (MVP)
 
 | Language | Code | Direction | Script |
-|----------|------|-----------|--------|
-| English | `en` | LTR | Latin |
-| Arabic | `ar` | RTL | Arabic |
-| French | `fr` | LTR | Latin |
-| Spanish | `es` | LTR | Latin |
+| -------- | ---- | --------- | ------ |
+| English  | `en` | LTR       | Latin  |
+| Arabic   | `ar` | RTL       | Arabic |
+| French   | `fr` | LTR       | Latin  |
+| Spanish  | `es` | LTR       | Latin  |
 
 ### Layout Considerations
 
@@ -683,11 +710,11 @@ Use **Lucide Icons** (MIT license, consistent style, good coverage).
 
 ### Typography for Non-Latin Scripts
 
-| Script | Fallback Font | Notes |
-|--------|---------------|-------|
-| Arabic | `Noto Sans Arabic` | Bundle if Arabic is primary deployment region |
-| Cyrillic | Covered by Nunito Sans | — |
-| CJK | `Noto Sans SC/JP/KR` | Large files; load on-demand if needed |
+| Script   | Fallback Font          | Notes                                         |
+| -------- | ---------------------- | --------------------------------------------- |
+| Arabic   | `Noto Sans Arabic`     | Bundle if Arabic is primary deployment region |
+| Cyrillic | Covered by Nunito Sans | —                                             |
+| CJK      | `Noto Sans SC/JP/KR`   | Large files; load on-demand if needed         |
 
 ---
 
@@ -695,23 +722,23 @@ Use **Lucide Icons** (MIT license, consistent style, good coverage).
 
 The system follows a **Mobile-First** implementation. Design for the smallest screen first, then enhance.
 
-| Breakpoint | Token | CSS | Target Devices |
-|------------|-------|-----|----------------|
-| **Base** | `mobile` | `<640px` | Smartphones (portrait) |
-| **Small** | `sm` | `≥640px` | Large phones (landscape), small tablets |
-| **Medium** | `md` | `≥768px` | Tablets (portrait) |
-| **Large** | `lg` | `≥1024px` | Tablets (landscape), small laptops |
-| **Extra Large** | `xl` | `≥1280px` | Desktops, large laptops |
+| Breakpoint      | Token    | CSS       | Target Devices                          |
+| --------------- | -------- | --------- | --------------------------------------- |
+| **Base**        | `mobile` | `<640px`  | Smartphones (portrait)                  |
+| **Small**       | `sm`     | `≥640px`  | Large phones (landscape), small tablets |
+| **Medium**      | `md`     | `≥768px`  | Tablets (portrait)                      |
+| **Large**       | `lg`     | `≥1024px` | Tablets (landscape), small laptops      |
+| **Extra Large** | `xl`     | `≥1280px` | Desktops, large laptops                 |
 
 ### Layout Adaptations by Breakpoint
 
-| Component | Mobile | Tablet | Desktop |
-|-----------|--------|--------|---------|
-| **Navigation** | Bottom tab bar | Side rail (collapsed) | Side rail (expanded) |
-| **Dashboard** | 1-column stack | 2-column grid | 3-column "Command Center" |
-| **AI Chat** | Full-screen page | Right panel (50%) | Center panel (33%) |
-| **Network Map** | Full-screen toggle | Inline (1/2 width) | Right panel (33%) |
-| **Cards** | Full width | 1/2 width | 1/3 width |
+| Component       | Mobile             | Tablet                | Desktop                   |
+| --------------- | ------------------ | --------------------- | ------------------------- |
+| **Navigation**  | Bottom tab bar     | Side rail (collapsed) | Side rail (expanded)      |
+| **Dashboard**   | 1-column stack     | 2-column grid         | 3-column "Command Center" |
+| **AI Chat**     | Full-screen page   | Right panel (50%)     | Center panel (33%)        |
+| **Network Map** | Full-screen toggle | Inline (1/2 width)    | Right panel (33%)         |
+| **Cards**       | Full width         | 1/2 width             | 1/3 width                 |
 
 ---
 
@@ -725,46 +752,46 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#0C1810',
+        background: "#0C1810",
         surface: {
-          DEFAULT: '#162118',
-          elevated: '#1E2D21',
+          DEFAULT: "#162118",
+          elevated: "#1E2D21",
         },
         border: {
-          subtle: '#2A3D2E',
-          DEFAULT: '#3D5442',
+          subtle: "#2A3D2E",
+          DEFAULT: "#3D5442",
         },
         primary: {
-          DEFAULT: '#2DD4BF',
-          muted: '#14B8A6',
-          subtle: '#0D9488',
+          DEFAULT: "#2DD4BF",
+          muted: "#14B8A6",
+          subtle: "#0D9488",
         },
-        success: '#4ADE80',
-        warning: '#FBBF24',
-        danger: '#F87171',
-        info: '#60A5FA',
+        success: "#4ADE80",
+        warning: "#FBBF24",
+        danger: "#F87171",
+        info: "#60A5FA",
         text: {
-          primary: '#E8F5E9',
-          secondary: '#A7C4AA',
-          muted: '#6B8B6F',
-          inverse: '#0C1810',
+          primary: "#E8F5E9",
+          secondary: "#A7C4AA",
+          muted: "#6B8B6F",
+          inverse: "#0C1810",
         },
       },
       fontFamily: {
-        sans: ['Nunito Sans', 'system-ui', 'sans-serif'],
-        mono: ['Source Code Pro', 'ui-monospace', 'monospace'],
+        sans: ["Nunito Sans", "system-ui", "sans-serif"],
+        mono: ["Source Code Pro", "ui-monospace", "monospace"],
       },
       borderRadius: {
-        sm: '4px',
-        md: '8px',
-        lg: '12px',
+        sm: "4px",
+        md: "8px",
+        lg: "12px",
       },
       spacing: {
         // Extends default Tailwind spacing
       },
     },
   },
-}
+};
 ```
 
 ### Required Dependencies
@@ -784,9 +811,9 @@ module.exports = {
 Fonts must be bundled, not loaded from CDN. Import in `_app.tsx` or global CSS:
 
 ```css
-@import '@fontsource-variable/nunito-sans';
-@import '@fontsource/source-code-pro/400.css';
-@import '@fontsource/source-code-pro/500.css';
+@import "@fontsource-variable/nunito-sans";
+@import "@fontsource/source-code-pro/400.css";
+@import "@fontsource/source-code-pro/500.css";
 ```
 
 ### ShadCN Component Theming
@@ -800,34 +827,34 @@ When using ShadCN components, override the default CSS variables to match this d
 ```css
 :root {
   /* Colors - Background */
-  --color-background: #0C1810;
+  --color-background: #0c1810;
   --color-surface: #162118;
-  --color-surface-elevated: #1E2D21;
+  --color-surface-elevated: #1e2d21;
 
   /* Colors - Border */
-  --color-border-subtle: #2A3D2E;
-  --color-border: #3D5442;
+  --color-border-subtle: #2a3d2e;
+  --color-border: #3d5442;
 
   /* Colors - Primary */
-  --color-primary: #2DD4BF;
-  --color-primary-muted: #14B8A6;
-  --color-primary-subtle: #0D9488;
+  --color-primary: #2dd4bf;
+  --color-primary-muted: #14b8a6;
+  --color-primary-subtle: #0d9488;
 
   /* Colors - Semantic */
-  --color-success: #4ADE80;
-  --color-warning: #FBBF24;
-  --color-danger: #F87171;
-  --color-info: #60A5FA;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-info: #60a5fa;
 
   /* Colors - Text */
-  --color-text-primary: #E8F5E9;
-  --color-text-secondary: #A7C4AA;
-  --color-text-muted: #6B8B6F;
-  --color-text-inverse: #0C1810;
+  --color-text-primary: #e8f5e9;
+  --color-text-secondary: #a7c4aa;
+  --color-text-muted: #6b8b6f;
+  --color-text-inverse: #0c1810;
 
   /* Typography */
-  --font-sans: 'Nunito Sans', system-ui, sans-serif;
-  --font-mono: 'Source Code Pro', ui-monospace, monospace;
+  --font-sans: "Nunito Sans", system-ui, sans-serif;
+  --font-mono: "Source Code Pro", ui-monospace, monospace;
 
   /* Spacing */
   --space-1: 4px;
@@ -856,7 +883,7 @@ When using ShadCN components, override the default CSS variables to match this d
 
 ## Changelog
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 2.0 | 2026-01-25 | Major revision: Forest/growth palette, humanitarian tone, Nunito Sans typography, blueprint AI aesthetic, enhanced accessibility guidelines |
-| 1.0 | 2026-01-24 | Initial tactical design system |
+| Version | Date       | Changes                                                                                                                                     |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.0     | 2026-01-25 | Major revision: Forest/growth palette, humanitarian tone, Nunito Sans typography, blueprint AI aesthetic, enhanced accessibility guidelines |
+| 1.0     | 2026-01-24 | Initial tactical design system                                                                                                              |

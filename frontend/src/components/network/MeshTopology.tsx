@@ -3,7 +3,8 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Map, { Marker, Source, Layer, MapRef } from "react-map-gl/mapbox";
 import type { LineLayer } from "mapbox-gl";
-import { X, Radio, Battery, Signal, Clock, Info } from "lucide-react";
+import { X, Radio, Battery, Signal, Clock, Info, Brain, Router, Settings } from "lucide-react";
+import { ToggleGroup } from "@/components/ui/ToggleGroup";
 
 interface Node {
     id: string;
@@ -59,6 +60,55 @@ function getConnectionQuality(rssiA: string, rssiB: string): { color: string; wi
     }
 }
 
+// Helper function to calculate convex hull using Graham's scan algorithm
+function convexHull(points: { lat: number; lng: number }[]): { lat: number; lng: number }[] {
+    if (points.length < 3) return points;
+
+    // Find the point with the lowest y-coordinate (and leftmost if tied)
+    let pivot = points[0];
+    for (let i = 1; i < points.length; i++) {
+        if (points[i].lat < pivot.lat || (points[i].lat === pivot.lat && points[i].lng < pivot.lng)) {
+            pivot = points[i];
+        }
+    }
+
+    // Sort points by polar angle with respect to pivot
+    const sortedPoints = points.filter(p => p !== pivot).sort((a, b) => {
+        const angleA = Math.atan2(a.lat - pivot.lat, a.lng - pivot.lng);
+        const angleB = Math.atan2(b.lat - pivot.lat, b.lng - pivot.lng);
+        if (angleA !== angleB) return angleA - angleB;
+        // If angles are equal, sort by distance
+        const distA = Math.sqrt((a.lat - pivot.lat) ** 2 + (a.lng - pivot.lng) ** 2);
+        const distB = Math.sqrt((b.lat - pivot.lat) ** 2 + (b.lng - pivot.lng) ** 2);
+        return distA - distB;
+    });
+
+    if (sortedPoints.length === 0) return [pivot];
+    if (sortedPoints.length === 1) return [pivot, sortedPoints[0]];
+
+    // Build the hull
+    const hull = [pivot, sortedPoints[0]];
+
+    for (let i = 1; i < sortedPoints.length; i++) {
+        // Remove points that make a right turn
+        while (hull.length > 1) {
+            const top = hull[hull.length - 1];
+            const nextToTop = hull[hull.length - 2];
+
+            // Calculate cross product to determine turn direction
+            const cross = (top.lng - nextToTop.lng) * (sortedPoints[i].lat - nextToTop.lat) -
+                         (top.lat - nextToTop.lat) * (sortedPoints[i].lng - nextToTop.lng);
+
+            if (cross > 0) break; // Left turn, keep the point
+            hull.pop(); // Right turn or collinear, remove the point
+        }
+
+        hull.push(sortedPoints[i]);
+    }
+
+    return hull;
+}
+
 interface MeshTopologyProps {
     showLegend: boolean;
     onToggleLegend: () => void;
@@ -69,11 +119,19 @@ export function MeshTopology({ showLegend, onToggleLegend }: MeshTopologyProps) 
     const [nodes] = useState(initialNodes);
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
     const [showTooltip, setShowTooltip] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+    const [showSettingsTooltip, setShowSettingsTooltip] = useState(false);
     const [viewState, setViewState] = useState({
         latitude: CENTER.lat,
         longitude: CENTER.lng,
         zoom: 16
     });
+
+    // Settings state
+    const [connectionView, setConnectionView] = useState<"Connection" | "Hybrid" | "Perimeter" | "Off">("Perimeter");
+    const [filterByType, setFilterByType] = useState<"Brain" | "Nodes" | "All">("All");
+    const [filterByStatus, setFilterByStatus] = useState<"Online" | "Weak" | "Offline" | "All">("All");
+    const [filterByQuality, setFilterByQuality] = useState<"Excellent" | "Good" | "Fair" | "Poor" | "All">("All");
 
     // Resize map when legend toggles
     useEffect(() => {
@@ -86,19 +144,193 @@ export function MeshTopology({ showLegend, onToggleLegend }: MeshTopologyProps) 
         return () => clearTimeout(timer);
     }, [showLegend]);
 
-    // Generate GeoJSON for connection lines
-    const linkGeoJSON = useMemo(() => {
+    // Helper function to get connection quality category from RSSI
+    const getQualityCategory = (rssi: string): "Excellent" | "Good" | "Fair" | "Poor" => {
+        if (rssi === "N/A") return "Poor";
+        const rssiValue = parseFloat(rssi.replace(" dBm", ""));
+        if (rssiValue > -70) return "Excellent";
+        if (rssiValue >= -85) return "Good";
+        if (rssiValue >= -100) return "Fair";
+        return "Poor";
+    };
+
+    // Filter nodes based on current filter settings
+    const filteredNodes = useMemo(() => {
+        return nodes.filter(node => {
+            // Filter by type
+            const isBrain = node.id === "Brain";
+            if (filterByType === "Brain" && !isBrain) return false;
+            if (filterByType === "Nodes" && isBrain) return false;
+
+            // Filter by status
+            if (filterByStatus !== "All" && node.status !== filterByStatus.toLowerCase()) return false;
+
+            // Filter by connection quality (based on RSSI)
+            if (filterByQuality !== "All") {
+                const quality = getQualityCategory(node.rssi || "N/A");
+                if (quality !== filterByQuality) return false;
+            }
+
+            return true;
+        });
+    }, [nodes, filterByType, filterByStatus, filterByQuality]);
+
+    // Generate GeoJSON for zone polygons (Perimeter view)
+    const zoneGeoJSON = useMemo(() => {
+        if (connectionView !== "Perimeter") {
+            return { type: 'FeatureCollection', features: [] };
+        }
+
         const features = [];
-        for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < nodes.length; j++) {
-                const nodeA = nodes[i];
-                const nodeB = nodes[j];
+
+        // Helper function to find all neighbors of a node, sorted by distance
+        const findNeighbors = (node: Node, allNodes: Node[]) => {
+            const neighbors: { node: Node; dist: number }[] = [];
+
+            for (const other of allNodes) {
+                if (other.id === node.id) continue;
+
+                const dLat = node.lat - other.lat;
+                const dLng = node.lng - other.lng;
+                const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+
+                neighbors.push({ node: other, dist });
+            }
+
+            // Sort by distance (closest first)
+            return neighbors.sort((a, b) => a.dist - b.dist);
+        };
+
+        // Build clusters based on node connectivity
+        // Each cluster represents nodes that form a mesh group
+        const buildCluster = (statusNodes: Node[]) => {
+            if (statusNodes.length === 0) return [];
+
+            const clusterPoints: { lat: number; lng: number }[] = [];
+            const visited = new Set<string>();
+
+            // For each node of this status, include it and its nearest neighbors
+            for (const node of statusNodes) {
+                if (visited.has(node.id)) continue;
+
+                clusterPoints.push({ lat: node.lat, lng: node.lng });
+                visited.add(node.id);
+
+                // Find nearest neighbors (any status) to create mesh connectivity
+                const neighbors = findNeighbors(node, filteredNodes);
+
+                // Add the two nearest neighbors to show mesh connectivity
+                for (let i = 0; i < Math.min(2, neighbors.length); i++) {
+                    const neighbor = neighbors[i].node;
+                    const key = `${neighbor.lat},${neighbor.lng}`;
+                    if (!clusterPoints.some(p => `${p.lat},${p.lng}` === key)) {
+                        clusterPoints.push({ lat: neighbor.lat, lng: neighbor.lng });
+                    }
+                }
+            }
+
+            return clusterPoints;
+        };
+
+        // Group nodes by status (only online and weak)
+        const onlineNodes = filteredNodes.filter(n => n.id !== "Brain" && n.status === "online");
+        const weakNodes = filteredNodes.filter(n => n.id !== "Brain" && n.status === "weak");
+
+        // Helper function to check if a point is inside a polygon using ray casting
+        const isPointInPolygon = (point: { lat: number; lng: number }, polygon: { lat: number; lng: number }[]): boolean => {
+            let inside = false;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const xi = polygon[i].lng, yi = polygon[i].lat;
+                const xj = polygon[j].lng, yj = polygon[j].lat;
+
+                const intersect = ((yi > point.lat) !== (yj > point.lat))
+                    && (point.lng < (xj - xi) * (point.lat - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        };
+
+        // Create zones for each status group
+        const createZoneFeature = (statusNodes: Node[], color: string, fillOpacity: number) => {
+            const clusterPoints = buildCluster(statusNodes);
+
+            if (clusterPoints.length < 3) return null;
+
+            // Use convex hull to create the zone boundary
+            const hull = convexHull(clusterPoints);
+
+            if (hull.length < 3) return null;
+
+            // Close the polygon by adding the first point at the end
+            const coordinates = [...hull.map(p => [p.lng, p.lat]), [hull[0].lng, hull[0].lat]];
+
+            return {
+                type: 'Feature',
+                geometry: {
+                    type: 'Polygon',
+                    coordinates: [coordinates]
+                },
+                properties: {
+                    color,
+                    fillOpacity
+                },
+                hull // Store hull for point-in-polygon check
+            };
+        };
+
+        // Create online zone first
+        const onlineZoneData = onlineNodes.length > 0 ? createZoneFeature(onlineNodes, "#4ADE80", 0.3) : null;
+
+        // Filter out weak nodes that are inside the online zone (they should be treated as online)
+        let effectiveWeakNodes = weakNodes;
+        if (onlineZoneData && onlineZoneData.hull) {
+            effectiveWeakNodes = weakNodes.filter(weakNode => {
+                const point = { lat: weakNode.lat, lng: weakNode.lng };
+                return !isPointInPolygon(point, onlineZoneData.hull);
+            });
+        }
+
+        // Create weak zone only with nodes outside the online zone
+        const weakZoneData = effectiveWeakNodes.length > 0 ? createZoneFeature(effectiveWeakNodes, "#FBBF24", 0.3) : null;
+
+        // Add zones with layering priority: weak (bottom) -> online (top)
+        if (weakZoneData) features.push({ ...weakZoneData, hull: undefined }); // Remove hull from output
+        if (onlineZoneData) features.push({ ...onlineZoneData, hull: undefined }); // Remove hull from output
+
+        return { type: 'FeatureCollection', features };
+    }, [filteredNodes, connectionView]);
+
+    // Generate GeoJSON for connection lines (non-Perimeter views)
+    const linkGeoJSON = useMemo(() => {
+        if (connectionView === "Off" || connectionView === "Perimeter") {
+            return { type: 'FeatureCollection', features: [] };
+        }
+
+        const features = [];
+        const brainNode = filteredNodes.find(n => n.id === "Brain");
+
+        for (let i = 0; i < filteredNodes.length; i++) {
+            for (let j = i + 1; j < filteredNodes.length; j++) {
+                const nodeA = filteredNodes[i];
+                const nodeB = filteredNodes[j];
 
                 const dLat = nodeA.lat - nodeB.lat;
                 const dLng = nodeA.lng - nodeB.lng;
                 const dist = Math.sqrt(dLat * dLat + dLng * dLng);
 
-                if (dist < 0.0025) {
+                // Determine if this connection should be shown based on view mode
+                let shouldShow = false;
+                const isBrainConnection = nodeA.id === "Brain" || nodeB.id === "Brain";
+
+                if (connectionView === "Connection") {
+                    // Show all connections within range
+                    shouldShow = dist < 0.0025;
+                } else if (connectionView === "Hybrid") {
+                    // Show Brain connections and nearby node-to-node connections
+                    shouldShow = dist < 0.0025 && (isBrainConnection || dist < 0.0015);
+                }
+
+                if (shouldShow) {
                     const quality = getConnectionQuality(nodeA.rssi || "N/A", nodeB.rssi || "N/A");
 
                     features.push({
@@ -117,7 +349,7 @@ export function MeshTopology({ showLegend, onToggleLegend }: MeshTopologyProps) 
             }
         }
         return { type: 'FeatureCollection', features };
-    }, [nodes]);
+    }, [filteredNodes, connectionView]);
 
     // Dynamic line layer style based on connection quality
     const layerStyle: LineLayer = {
@@ -171,32 +403,142 @@ export function MeshTopology({ showLegend, onToggleLegend }: MeshTopologyProps) 
                     </span>
                 </div>
 
-                {/* Legend Toggle Button */}
-                <div className="relative pointer-events-auto">
-                    <button
-                        onClick={onToggleLegend}
-                        onMouseEnter={() => setShowTooltip(true)}
-                        onMouseLeave={() => setShowTooltip(false)}
-                        className={`p-2 rounded-lg border shadow-lg transition-all ${
-                            showLegend
-                                ? 'bg-primary/20 border-primary text-primary'
-                                : 'bg-surface/90 border-border-subtle text-text-secondary hover:text-primary hover:border-primary/50'
-                        } backdrop-blur-md`}
-                        aria-label={showLegend ? 'Hide legend' : 'Show legend'}
-                    >
-                        <Info className="h-4 w-4" />
-                    </button>
+                {/* Control Buttons */}
+                <div className="flex gap-2 pointer-events-auto">
+                    {/* Settings Toggle Button */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowSettings(!showSettings)}
+                            onMouseEnter={() => setShowSettingsTooltip(true)}
+                            onMouseLeave={() => setShowSettingsTooltip(false)}
+                            className={`p-2 rounded-lg border shadow-lg transition-all ${
+                                showSettings
+                                    ? 'bg-primary/20 border-primary text-primary'
+                                    : 'bg-surface/90 border-border-subtle text-text-secondary hover:text-primary hover:border-primary/50'
+                            } backdrop-blur-md`}
+                            aria-label={showSettings ? 'Hide settings' : 'Show settings'}
+                        >
+                            <Settings className="h-4 w-4" />
+                        </button>
 
-                    {/* Tooltip */}
-                    {showTooltip && (
-                        <div className="absolute top-full right-0 mt-2 bg-surface-elevated/95 backdrop-blur-sm border border-border-default rounded-lg px-3 py-1.5 shadow-lg whitespace-nowrap animate-fadeIn" style={{ animationDuration: '150ms' }}>
-                            <span className="text-xs text-text-secondary">
-                                {showLegend ? 'Hide' : 'Show'} map legend
-                            </span>
-                        </div>
-                    )}
+                        {/* Tooltip */}
+                        {showSettingsTooltip && !showSettings && (
+                            <div className="absolute top-full right-0 mt-2 bg-surface-elevated/95 backdrop-blur-sm border border-border-default rounded-lg px-3 py-1.5 shadow-lg whitespace-nowrap animate-fadeIn" style={{ animationDuration: '150ms' }}>
+                                <span className="text-xs text-text-secondary">
+                                    Map settings
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Legend Toggle Button */}
+                    <div className="relative">
+                        <button
+                            onClick={onToggleLegend}
+                            onMouseEnter={() => setShowTooltip(true)}
+                            onMouseLeave={() => setShowTooltip(false)}
+                            className={`p-2 rounded-lg border shadow-lg transition-all ${
+                                showLegend
+                                    ? 'bg-primary/20 border-primary text-primary'
+                                    : 'bg-surface/90 border-border-subtle text-text-secondary hover:text-primary hover:border-primary/50'
+                            } backdrop-blur-md`}
+                            aria-label={showLegend ? 'Hide legend' : 'Show legend'}
+                        >
+                            <Info className="h-4 w-4" />
+                        </button>
+
+                        {/* Tooltip */}
+                        {showTooltip && (
+                            <div className="absolute top-full right-0 mt-2 bg-surface-elevated/95 backdrop-blur-sm border border-border-default rounded-lg px-3 py-1.5 shadow-lg whitespace-nowrap animate-fadeIn" style={{ animationDuration: '150ms' }}>
+                                <span className="text-xs text-text-secondary">
+                                    {showLegend ? 'Hide' : 'Show'} map legend
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
+
+            {/* Settings Panel */}
+            {showSettings && (
+                <div className="absolute top-16 right-4 z-10 bg-surface-elevated border border-border-default rounded-lg shadow-2xl w-80 animate-fadeIn" style={{ animationDuration: '200ms' }}>
+                    {/* Settings Header */}
+                    <div className="bg-surface p-4 border-b border-border-subtle flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Settings className="h-4 w-4 text-primary" />
+                            <h4 className="font-semibold text-text-primary">Map Settings</h4>
+                        </div>
+                        <button
+                            onClick={() => setShowSettings(false)}
+                            className="p-1 hover:bg-surface-elevated rounded transition-colors"
+                            aria-label="Close settings"
+                        >
+                            <X className="h-4 w-4 text-text-secondary" />
+                        </button>
+                    </div>
+
+                    {/* Settings Body */}
+                    <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto">
+                        {/* Connection View Toggle */}
+                        <ToggleGroup
+                            label="Connection View"
+                            options={[
+                                { value: "Connection", label: "Connection" },
+                                { value: "Hybrid", label: "Hybrid" },
+                                { value: "Perimeter", label: "Perimeter" },
+                                { value: "Off", label: "Off" }
+                            ]}
+                            value={connectionView}
+                            onChange={(value) => setConnectionView(value as typeof connectionView)}
+                        />
+
+                        <div className="border-t border-border-subtle pt-4">
+                            <p className="text-xs text-text-muted uppercase tracking-wide font-medium mb-3">Filters</p>
+
+                            {/* Filter by Type */}
+                            <ToggleGroup
+                                label="By Type"
+                                options={[
+                                    { value: "Brain", label: "Brain" },
+                                    { value: "Nodes", label: "Nodes" },
+                                    { value: "All", label: "All" }
+                                ]}
+                                value={filterByType}
+                                onChange={(value) => setFilterByType(value as typeof filterByType)}
+                                className="mb-4"
+                            />
+
+                            {/* Filter by Status */}
+                            <ToggleGroup
+                                label="By Status"
+                                options={[
+                                    { value: "Online", label: "Online" },
+                                    { value: "Weak", label: "Weak" },
+                                    { value: "Offline", label: "Offline" },
+                                    { value: "All", label: "All" }
+                                ]}
+                                value={filterByStatus}
+                                onChange={(value) => setFilterByStatus(value as typeof filterByStatus)}
+                                className="mb-4"
+                            />
+
+                            {/* Filter by Connection Quality */}
+                            <ToggleGroup
+                                label="By Connection Quality"
+                                options={[
+                                    { value: "Excellent", label: "Excellent" },
+                                    { value: "Good", label: "Good" },
+                                    { value: "Fair", label: "Fair" },
+                                    { value: "Poor", label: "Poor" },
+                                    { value: "All", label: "All" }
+                                ]}
+                                value={filterByQuality}
+                                onChange={(value) => setFilterByQuality(value as typeof filterByQuality)}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Node Detail Popover */}
             {selectedNode && (
@@ -285,13 +627,36 @@ export function MeshTopology({ showLegend, onToggleLegend }: MeshTopologyProps) 
                 mapStyle="mapbox://styles/mapbox/dark-v11"
                 mapboxAccessToken={MAPBOX_TOKEN}
             >
+                {/* Zone Polygon Layers (Perimeter View) */}
+                <Source id="zone-data" type="geojson" data={zoneGeoJSON as any}>
+                    <Layer
+                        id="zone-fill"
+                        type="fill"
+                        source="zone-data"
+                        paint={{
+                            'fill-color': ['get', 'color'],
+                            'fill-opacity': ['get', 'fillOpacity']
+                        }}
+                    />
+                    <Layer
+                        id="zone-outline"
+                        type="line"
+                        source="zone-data"
+                        paint={{
+                            'line-color': ['get', 'color'],
+                            'line-width': 2,
+                            'line-opacity': 0.8
+                        }}
+                    />
+                </Source>
+
                 {/* Connection Lines Layer */}
                 <Source id="mesh-data" type="geojson" data={linkGeoJSON as any}>
                     <Layer {...layerStyle} />
                 </Source>
 
                 {/* Node Markers */}
-                {nodes.map((node) => {
+                {filteredNodes.map((node) => {
                     const isBrain = node.id === "Brain";
                     const isSelected = selectedNode?.id === node.id;
 
@@ -299,7 +664,7 @@ export function MeshTopology({ showLegend, onToggleLegend }: MeshTopologyProps) 
                         <Marker key={node.id} longitude={node.lng} latitude={node.lat} anchor="center">
                             <button
                                 onClick={() => setSelectedNode(node)}
-                                className="group relative flex flex-col items-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-full"
+                                className="group relative flex flex-col items-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-full z-10"
                                 aria-label={`View details for node ${node.id}`}
                             >
                                 {/* Glow for Brain Hub */}
@@ -315,14 +680,28 @@ export function MeshTopology({ showLegend, onToggleLegend }: MeshTopologyProps) 
                                     <div className="absolute -inset-2 bg-warning/20 rounded-full animate-pulse" style={{ animationDuration: '1s' }} />
                                 )}
 
-                                {/* Node Circle */}
+                                {/* Node Icon */}
                                 <div className={`
-                                    relative w-5 h-5 rounded-full border-2 shadow-lg transition-all duration-300
+                                    relative p-1 rounded-full border-2 shadow-lg transition-all duration-300 bg-surface
                                     ${isSelected ? 'scale-125 ring-2 ring-primary ring-offset-2 ring-offset-background' : 'group-hover:scale-110'}
-                                    ${node.status === 'offline' ? 'bg-danger border-background border-dashed' :
-                                      node.status === 'weak' ? 'bg-warning border-background' :
-                                      'bg-success border-background'}
-                                `} />
+                                    ${node.status === 'offline' ? 'border-danger border-dashed' :
+                                      node.status === 'weak' ? 'border-warning' :
+                                      'border-success'}
+                                `}>
+                                    {isBrain ? (
+                                        <Brain className={`h-4 w-4 ${
+                                            node.status === 'offline' ? 'text-danger' :
+                                            node.status === 'weak' ? 'text-warning' :
+                                            'text-success'
+                                        }`} />
+                                    ) : (
+                                        <Router className={`h-4 w-4 ${
+                                            node.status === 'offline' ? 'text-danger' :
+                                            node.status === 'weak' ? 'text-warning' :
+                                            'text-success'
+                                        }`} />
+                                    )}
+                                </div>
 
                                 {/* Hover Tooltip */}
                                 <div className="absolute top-7 bg-surface-elevated/95 backdrop-blur-sm text-[10px] px-2 py-1 rounded border border-border-default opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20 pointer-events-none shadow-lg">
