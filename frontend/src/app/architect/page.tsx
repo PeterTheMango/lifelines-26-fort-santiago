@@ -45,6 +45,7 @@ function ArchitectContent() {
         // UI Actions
         resetToProjectSelection,
         closeCompletionModal,
+        inventory, // Destructure inventory
     } = useArchitect();
 
     const {
@@ -145,6 +146,7 @@ function ArchitectContent() {
                                 projectName={currentProject?.name}
                                 onBack={handleBackToProjects}
                                 mode="planning"
+                                inventory={inventory} // Pass inventory
                             />
                         </div>
 
@@ -153,7 +155,7 @@ function ArchitectContent() {
                             <PlanViewer
                                 plan={null}
                                 currentStepIndex={0}
-                                onNavigateToStep={() => {}}
+                                onNavigateToStep={() => { }}
                             />
                         </div>
 
@@ -170,6 +172,7 @@ function ArchitectContent() {
                 return (
                     <GeneratingState
                         progress={generationProgress}
+                        message={uiState.generationStatusMessage}
                     />
                 );
 
@@ -186,6 +189,7 @@ function ArchitectContent() {
                                 projectName={currentProject?.name}
                                 onBack={handleBackToProjects}
                                 mode="review"
+                                inventory={inventory} // Pass inventory
                             />
                         </div>
 

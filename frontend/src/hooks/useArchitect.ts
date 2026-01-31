@@ -70,6 +70,7 @@ export function useChat() {
     setReadyToGenerate,
     isLoading,
     error,
+    inventory,
   } = useArchitect();
 
   return {
@@ -79,6 +80,7 @@ export function useChat() {
     setReadyToGenerate,
     isLoading,
     error,
+    inventory,
   };
 }
 

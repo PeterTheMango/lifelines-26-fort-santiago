@@ -59,6 +59,15 @@ export interface Material {
   unit: string;
 }
 
+export interface InventoryItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  emoji?: string; // Optional emoji for UI
+}
+
 export interface ConstructionStep {
   id: string;
   stepNumber: number;
@@ -82,6 +91,7 @@ export interface Blueprint {
   title: string;
   description: string;
   metadata: PlanMetadata;
+  imageUrl?: string;
   materials: Material[];
   steps: ConstructionStep[];
   sourceReferences: Citation[];
@@ -105,6 +115,7 @@ export interface ArchitectUIState {
   currentStepIndex: number;
   isGenerateButtonVisible: boolean;
   generationProgress: number; // 0-100
+  generationStatusMessage?: string;
   showCompletionModal: boolean;
 }
 
@@ -119,6 +130,7 @@ export interface ArchitectContextValue {
   uiState: ArchitectUIState;
   isLoading: boolean;
   error: string | null;
+  inventory: InventoryItem[]; // Added inventory to context
 
   // Project Actions
   loadProjects: () => Promise<void>;

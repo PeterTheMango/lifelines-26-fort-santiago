@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 interface GeneratingStateProps {
     progress: number; // 0-100
+    message?: string;
     onComplete?: () => void;
 }
 
@@ -17,14 +18,18 @@ const getStatusMessage = (progress: number): string => {
     return "Finalizing blueprint...";
 };
 
-export function GeneratingState({ progress, onComplete }: GeneratingStateProps) {
-    const [statusMessage, setStatusMessage] = useState(getStatusMessage(0));
+export function GeneratingState({ progress, message, onComplete }: GeneratingStateProps) {
+    const [statusMessage, setStatusMessage] = useState(message || "Initializing...");
     const [isVisible, setIsVisible] = useState(true);
 
-    // Update status message when progress changes
+    // Update status message when progress or message changes
     useEffect(() => {
-        setStatusMessage(getStatusMessage(progress));
-    }, [progress]);
+        if (message) {
+            setStatusMessage(message);
+        } else {
+            setStatusMessage(getStatusMessage(progress));
+        }
+    }, [progress, message]);
 
     // Call onComplete when progress reaches 100
     useEffect(() => {

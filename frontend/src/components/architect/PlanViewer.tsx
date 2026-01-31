@@ -170,9 +170,9 @@ export function PlanViewer({
                                             <span className="text-text-muted">Difficulty: </span>
                                             <span className={
                                                 plan.metadata.difficulty === 'Easy' ? 'text-success' :
-                                                plan.metadata.difficulty === 'Moderate' ? 'text-warning' :
-                                                plan.metadata.difficulty === 'Challenging' ? 'text-danger' :
-                                                'text-danger'
+                                                    plan.metadata.difficulty === 'Moderate' ? 'text-warning' :
+                                                        plan.metadata.difficulty === 'Challenging' ? 'text-danger' :
+                                                            'text-danger'
                                             }>{plan.metadata.difficulty}</span>
                                         </div>
                                         <div className="px-3 py-1.5 bg-surface border border-border-subtle rounded-[var(--radius-full)] text-xs font-mono uppercase tracking-wider">
@@ -259,59 +259,32 @@ export function PlanViewer({
                                     </h3>
 
                                     <div className="aspect-video bg-background rounded-[var(--radius-md)] border border-border-subtle flex items-center justify-center relative overflow-hidden shadow-inner">
-                                        {/* Simple CSS Tire Wall Diagram */}
-                                        <div className="relative w-64 h-40 flex flex-col justify-end items-center">
-                                            {/* Ground line */}
-                                            <div className="absolute bottom-0 w-full h-0.5 bg-text-muted/30" />
-
-                                            {/* Tire layers (staggered pattern) */}
-                                            <div className="absolute bottom-1 flex gap-1">
-                                                {[0, 1, 2, 3].map((i) => (
-                                                    <div
-                                                        key={`layer1-${i}`}
-                                                        className="w-12 h-12 rounded-full border-2 border-primary/50 bg-primary/5 flex items-center justify-center"
-                                                    >
-                                                        <div className="w-4 h-4 rounded-full bg-primary/30" />
-                                                    </div>
-                                                ))}
+                                        {plan.imageUrl ? (
+                                            <img
+                                                src={plan.imageUrl}
+                                                alt="Strategic Structural Overview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            /* Generic Project Visualization Placeholder */
+                                            <div className="relative w-full h-full flex flex-col justify-center items-center p-8 text-center">
+                                                {/* Dynamic content if image available, or generic illustration if not */}
+                                                <div className="w-24 h-24 mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                                                    <span className="text-4xl">🏗️</span>
+                                                </div>
+                                                <h4 className="text-primary font-mono font-bold mb-2">STRUCTURAL OVERVIEW</h4>
+                                                <p className="text-text-muted text-sm max-w-sm">
+                                                    Detailed structural diagrams will be generated based on specific material requirements:
+                                                    <span className="text-text-secondary ml-1 font-medium">
+                                                        {plan.materials.slice(0, 2).map(m => m.name).join(' + ')} construction
+                                                    </span>
+                                                </p>
                                             </div>
-
-                                            {/* Second layer - offset */}
-                                            <div className="absolute bottom-13 flex gap-1 ml-6">
-                                                {[0, 1, 2].map((i) => (
-                                                    <div
-                                                        key={`layer2-${i}`}
-                                                        className="w-12 h-12 rounded-full border-2 border-primary/50 bg-primary/5 flex items-center justify-center"
-                                                    >
-                                                        <div className="w-4 h-4 rounded-full bg-primary/30" />
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            {/* Third layer */}
-                                            <div className="absolute bottom-25 flex gap-1">
-                                                {[0, 1, 2, 3].map((i) => (
-                                                    <div
-                                                        key={`layer3-${i}`}
-                                                        className="w-12 h-12 rounded-full border-2 border-primary/50 bg-primary/5 flex items-center justify-center"
-                                                    >
-                                                        <div className="w-4 h-4 rounded-full bg-primary/30" />
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            {/* Dimension lines */}
-                                            <div className="absolute -bottom-6 text-xs text-primary font-mono">
-                                                3.0m
-                                            </div>
-                                            <div className="absolute -right-8 top-1/2 -translate-y-1/2 rotate-90 text-xs text-primary font-mono">
-                                                1.5m
-                                            </div>
-                                        </div>
+                                        )}
 
                                         {/* Figure label */}
-                                        <div className="absolute bottom-2 right-2 text-xs text-primary/70 font-mono">
-                                            FIG 1.1: STRUCTURAL ELEVATION
+                                        <div className="absolute bottom-2 right-2 text-xs text-primary/70 font-mono bg-background/80 px-2 py-0.5 rounded">
+                                            FIG 1.1: CONCEPTUAL ELEVATION
                                         </div>
                                     </div>
                                 </div>
@@ -469,11 +442,10 @@ export function PlanViewer({
                                 <button
                                     key={idx}
                                     onClick={() => onNavigateToStep(idx)}
-                                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                                        currentStepIndex === idx
-                                            ? "bg-primary w-8"
-                                            : "bg-border hover:bg-border-subtle"
-                                    }`}
+                                    className={`w-2 h-2 rounded-full transition-all duration-200 ${currentStepIndex === idx
+                                        ? "bg-primary w-8"
+                                        : "bg-border hover:bg-border-subtle"
+                                        }`}
                                     aria-label={`Go to ${idx === 0 ? "overview" : `step ${idx}`}`}
                                 />
                             ))}

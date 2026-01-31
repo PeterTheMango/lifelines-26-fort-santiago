@@ -2,13 +2,10 @@
 
 import { Send, BrainCircuit, User, FileText, ArrowLeft } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import type { ChatMessage, Citation } from "@/types/architect";
+import type { ChatMessage, Citation, InventoryItem } from "@/types/architect";
 
-interface InventoryItem {
-    name: string;
-    emoji: string;
-    quantity: number;
-}
+
+
 
 interface ChatInterfaceProps {
     // Context integration props
@@ -19,6 +16,7 @@ interface ChatInterfaceProps {
     onBack?: () => void;
     // Mode: 'planning' for full width, 'review' for side-by-side
     mode?: 'planning' | 'review';
+    inventory?: InventoryItem[]; // Added optional inventory prop
 }
 
 export function ChatInterface({
@@ -28,18 +26,14 @@ export function ChatInterface({
     projectName,
     onBack,
     mode = 'planning',
+    inventory = [], // Default to empty array
 }: ChatInterfaceProps) {
     const [input, setInput] = useState("");
     const [isSending, setIsSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Mock inventory data - would come from actual inventory system
-    const inventoryItems: InventoryItem[] = [
-        { name: "Rubble", emoji: "🪨", quantity: 450 },
-        { name: "Timber", emoji: "🪵", quantity: 12 },
-        { name: "Tires", emoji: "🛞", quantity: 40 },
-        { name: "Tarps", emoji: "🎪", quantity: 8 },
-    ];
+    // Mock inventory removed - using props
+
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -105,15 +99,15 @@ export function ChatInterface({
                 {/* Context Chips - Available Inventory (hide in compact/review mode) */}
                 {!isCompact && (
                     <div className="flex flex-wrap gap-2">
-                        {inventoryItems.map((item, idx) => (
+                        {inventory.map((item, idx) => (
                             <div
                                 key={idx}
                                 className="px-3 py-1 bg-surface-elevated border border-border text-text-secondary rounded-[var(--radius-full)] text-xs font-mono flex items-center gap-1.5 hover:border-primary/30 transition-colors duration-200"
                                 style={{ animationDelay: `${idx * 50}ms` }}
                             >
-                                <span>{item.emoji}</span>
+                                <span>{item.emoji || '📦'}</span>
                                 <span>
-                                    {item.name} ×{item.quantity}
+                                    {item.name} ×{item.quantity} {item.unit}
                                 </span>
                             </div>
                         ))}
@@ -134,9 +128,8 @@ export function ChatInterface({
                 {messages.map((msg, idx) => (
                     <div
                         key={msg.id || idx}
-                        className={`flex gap-3 animate-slide-up ${
-                            msg.role === "user" ? "justify-end" : "justify-start"
-                        }`}
+                        className={`flex gap-3 animate-slide-up ${msg.role === "user" ? "justify-end" : "justify-start"
+                            }`}
                         style={{ animationDelay: `${Math.min(idx * 50, 200)}ms` }}
                     >
                         {msg.role === "ai" && (
@@ -146,11 +139,10 @@ export function ChatInterface({
                         )}
 
                         <div
-                            className={`max-w-[85%] rounded-[var(--radius-lg)] p-4 text-sm ${
-                                msg.role === "user"
-                                    ? "bg-surface-elevated text-text-primary shadow-md"
-                                    : "bg-surface-elevated/50 text-text-secondary border-l-[3px] border-primary pl-4"
-                            }`}
+                            className={`max-w-[85%] rounded-[var(--radius-lg)] p-4 text-sm ${msg.role === "user"
+                                ? "bg-surface-elevated text-text-primary shadow-md"
+                                : "bg-surface-elevated/50 text-text-secondary border-l-[3px] border-primary pl-4"
+                                }`}
                         >
                             <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
 
