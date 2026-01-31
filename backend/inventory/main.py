@@ -69,3 +69,25 @@ def read_inventory(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
 @app.post("/items", response_model=schemas.InventoryItemResponse)
 def create_item(item: schemas.InventoryItemCreate, db: Session = Depends(get_db)):
     return crud.create_inventory_item(db, item)
+
+@app.get("/dashboard/stats")
+def get_dashboard_stats(db: Session = Depends(get_db)):
+    items = db.query(models.InventoryItem).all()
+
+    # Calculate total resources
+    total_resources = sum(item.current_amount for item in items)
+
+    # Calculate estimated value (simplified: $50 per unit average)
+    est_value = total_resources * 50
+
+    # Count critical alerts
+    critical_count = sum(1 for item in items if item.status == "critical")
+    warning_count = sum(1 for item in items if item.status in ["warning", "low"])
+    active_alerts = critical_count + warning_count
+
+    return {
+        "totalResources": int(total_resources),
+        "activeMesh": {"online": 12, "total": 14},
+        "estValue": est_value,
+        "activeAlerts": active_alerts
+    }

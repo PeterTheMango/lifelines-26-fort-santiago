@@ -1,9 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Modal } from "@/components/ui/Modal";
-import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import {
+  Plus,
+  Camera,
+  Upload,
+  X,
+  Check,
+  MapPin,
+} from "lucide-react";
 import { createInventoryItem } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import Cropper from "react-easy-crop";
+import type { Area } from "react-easy-crop";
+import clsx from "clsx";
 
 import Map, { Marker } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -15,22 +34,162 @@ const unitMap: Record<string, string> = {
   "Plastic Sheeting": "rolls",
   "Water (Potable)": "L",
   "Fuel (Diesel)": "L",
-  "Aggregates": "kg"
+  "Aggregates": "kg",
 };
 
 export function AddMaterialModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedType, setSelectedType] = useState("Concrete Rubble");
-  const [coordinates, setCoordinates] = useState({ lat: 14.5939, lng: 120.9712 });
+  const [coordinates, setCoordinates] = useState({
+    lat: 14.5939,
+    lng: 120.9712,
+  });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (file: File) => {
+    if (file && file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string;
+
+        const img = new Image();
+        img.onload = () => {
+          const aspectRatio = img.width / img.height;
+          // If essentially square, skip cropper
+          const isSquare = Math.abs(aspectRatio - 1) < 0.05;
+
+          if (isSquare) {
+            setImageFile(file);
+            setImagePreview(imageUrl);
+          } else {
+            setTempImageUrl(imageUrl);
+            setShowCropper(true);
+          }
+        };
+        img.src = imageUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onCropComplete = useCallback(
+    (croppedArea: Area, croppedAreaPixels: Area) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    []
+  );
+
+  const createCroppedImage = async () => {
+    if (!tempImageUrl || !croppedAreaPixels) return;
+
+    const image = new Image();
+    image.src = tempImageUrl;
+
+    await new Promise((resolve) => {
+      image.onload = resolve;
+    });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = croppedAreaPixels.width;
+    canvas.height = croppedAreaPixels.height;
+
+    ctx.drawImage(
+      image,
+      croppedAreaPixels.x,
+      croppedAreaPixels.y,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height,
+      0,
+      0,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height
+    );
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const croppedFile = new File([blob], "cropped-image.jpg", {
+          type: "image/jpeg",
+        });
+        setImageFile(croppedFile);
+        setImagePreview(canvas.toDataURL());
+        setShowCropper(false);
+        setTempImageUrl(null);
+      }
+    }, "image/jpeg");
+  };
+
+  const cancelCrop = () => {
+    setShowCropper(false);
+    setTempImageUrl(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!imageFile) {
+      alert("Please upload a photo of the material");
+      return;
+    }
+
     setSubmitting(true);
     const formData = new FormData(e.currentTarget);
     const type = formData.get("type") as string;
-    const category = type.includes("Water") ? "water" : type.includes("Fuel") ? "fuel" : "construction";
-    // unit is disabled so formData won't have it, retrieve from map
+    const category = type.includes("Water")
+      ? "water"
+      : type.includes("Fuel")
+      ? "fuel"
+      : "construction";
     const unit = unitMap[type] || "kg";
 
     try {
@@ -40,12 +199,12 @@ export function AddMaterialModal() {
         currentAmount: Number(formData.get("currentAmount")),
         unit: unit,
         location: formData.get("location"),
-        lat: coordinates.lat, // Use state coordinates
-        lng: coordinates.lng, // Use state coordinates
-        maxCapacity: 0, // Deprecated in favor of requiredAmount
+        lat: coordinates.lat,
+        lng: coordinates.lng,
+        maxCapacity: 0,
         description: formData.get("description"),
         status: "good",
-        requiredAmount: Number(formData.get("requiredAmount") || 0)
+        requiredAmount: Number(formData.get("requiredAmount") || 0),
       });
       setIsOpen(false);
       window.location.reload();
@@ -58,197 +217,330 @@ export function AddMaterialModal() {
 
   return (
     <>
-      <button
+      <Button
         onClick={() => setIsOpen(true)}
-        className="w-full h-12 bg-primary hover:bg-primary/90 text-text-inverse font-semibold rounded-lg flex items-center justify-center gap-2 transition-all group active:scale-98 shadow-lg shadow-primary/20 hover:shadow-primary/30"
-        style={{
-          backgroundColor: "#2DD4BF",
-          minHeight: "48px",
-          borderRadius: "8px",
-          boxShadow: "0 4px 14px 0 rgba(45, 212, 191, 0.2)"
-        }}
+        className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
+        size="lg"
       >
-        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+        <Plus className="w-5 h-5 mr-2" />
         Add Material
-      </button>
+      </Button>
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Log Scavenged Material">
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* Material Type */}
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">
-              Material Type
-            </label>
-            <select
-              name="type"
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full h-11 bg-surface-elevated border border-border-subtle rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              style={{
-                backgroundColor: "#1E2D21",
-                borderColor: "#2A3D2E",
-                borderRadius: "8px",
-                minHeight: "44px"
-              }}
-            >
-              <option>Concrete Rubble</option>
-              <option>Timber Beams</option>
-              <option>Metal Scraps</option>
-              <option>Plastic Sheeting</option>
-              <option>Water (Potable)</option>
-              <option>Fuel (Diesel)</option>
-              <option>Aggregates</option>
-            </select>
-          </div>
-
-          {/* Quantity */}
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">
-              Quantity
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                name="currentAmount"
-                className="flex-1 h-11 bg-surface-elevated border border-border-subtle rounded-lg px-4 py-2 text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                placeholder="0"
-                style={{
-                  backgroundColor: "#1E2D21",
-                  borderColor: "#2A3D2E",
-                  borderRadius: "8px",
-                  minHeight: "44px"
-                }}
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Log Scavenged Material"
+        maxWidth="2xl"
+      >
+        {showCropper && tempImageUrl ? (
+          <div className="flex flex-col h-full -mx-6 -my-4">
+            <div className="flex-1 relative bg-black/40 min-h-[400px]">
+              <Cropper
+                image={tempImageUrl}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
               />
-              <select
-                name="unit"
-                defaultValue={unitMap[selectedType] || "kg"}
-                key={selectedType}
-                disabled // Disabled as requested
-                className="w-24 h-11 bg-surface-elevated border border-border-subtle rounded-lg px-3 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all opacity-70 cursor-not-allowed"
-                style={{
-                  backgroundColor: "#1E2D21",
-                  borderColor: "#2A3D2E",
-                  borderRadius: "8px",
-                  minHeight: "44px"
-                }}
-              >
-                <option value="kg">kg</option>
-                <option value="L">L</option>
-                <option value="units">units</option>
-                <option value="m³">m³</option>
-                <option value="rolls">rolls</option>
-              </select>
+            </div>
+            
+            <div className="p-6 bg-surface-elevated border-t border-border-subtle space-y-4">
+               <div className="space-y-2">
+                  <div className="flex justify-between text-xs text-text-secondary font-mono mb-1">
+                    <span>Zoom</span>
+                    <span>{zoom.toFixed(1)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    value={zoom}
+                    onChange={(e) => setZoom(Number(e.target.value))}
+                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-surface-elevated border border-border-subtle accent-primary hover:accent-primary-muted focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    style={{
+                       backgroundImage: `linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) ${((zoom - 1) / 2) * 100}%, var(--color-border-subtle) ${((zoom - 1) / 2) * 100}%, var(--color-border-subtle) 100%)`
+                    }}
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-2">
+                   <Button variant="ghost" onClick={cancelCrop} className="flex-1">
+                     Cancel
+                   </Button>
+                   <Button onClick={createCroppedImage} className="flex-1">
+                     <Check className="w-4 h-4 mr-2" />
+                     Apply Crop
+                   </Button>
+                </div>
             </div>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col h-full">
+            <ScrollArea className="flex-1 -mx-6 px-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
+                
+                {/* Left Column: Visual Data */}
+                <div className="space-y-6">
+                  {/* Image Upload */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
+                      <Camera className="w-4 h-4 text-primary" />
+                      Material Photo <span className="text-danger">*</span>
+                    </label>
 
-          {/* Location / Sector */}
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">
-              Location / Sector
-            </label>
-            <div className="space-y-2">
-              <input
-                type="text"
-                name="location"
-                required
-                className="w-full h-11 bg-surface-elevated border border-border-subtle rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                placeholder="Location Name (e.g. Sector A)"
-                style={{
-                  backgroundColor: "#1E2D21",
-                  borderColor: "#2A3D2E",
-                  borderRadius: "8px",
-                  minHeight: "44px"
-                }}
-              />
+                    {!imagePreview ? (
+                      <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={clsx(
+                          "relative group flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer",
+                          isDragging
+                            ? "border-primary bg-primary/5 scale-[1.02]"
+                            : "border-border-subtle bg-surface-elevated hover:border-primary/50 hover:bg-surface-elevated/80"
+                        )}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            fileInputRef.current?.click();
+                          }
+                        }}
+                      >
+                        <div className="p-3 rounded-full bg-surface border border-border-subtle group-hover:scale-110 transition-transform duration-200">
+                           <Upload className="w-6 h-6 text-text-muted group-hover:text-primary transition-colors" />
+                        </div>
+                        <div className="text-center space-y-1">
+                          <p className="text-sm font-medium text-text-primary">
+                            Click to upload or drag & drop
+                          </p>
+                          <p className="text-xs text-text-muted">
+                            JPG, PNG or WEBP (max 10MB)
+                          </p>
+                        </div>
+                        
+                        <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+                           <Button 
+                              type="button" 
+                              variant="secondary" 
+                              size="sm"
+                              onClick={() => fileInputRef.current?.click()}
+                           >
+                              Browse
+                           </Button>
+                           <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => cameraInputRef.current?.click()}
+                            >
+                              Camera
+                            </Button>
+                        </div>
+                        
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileInputChange}
+                          className="hidden"
+                        />
+                        <input
+                          ref={cameraInputRef}
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={handleFileInputChange}
+                          className="hidden"
+                        />
+                      </div>
+                    ) : (
+                      <div className="relative aspect-square rounded-xl overflow-hidden border border-border-subtle group shadow-md">
+                        <img
+                          src={imagePreview}
+                          alt="Material preview"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-4">
+                           <p className="text-xs text-white/90 truncate font-mono w-full">
+                              {imageFile?.name}
+                           </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeImage}
+                          className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-danger text-white rounded-full backdrop-blur-sm transition-colors"
+                          aria-label="Remove image"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
-              {/* Map Picker */}
-              <div className="h-48 w-full rounded-lg overflow-hidden border border-border-subtle relative group">
-                <Map
-                  initialViewState={{
-                    longitude: 120.9712,
-                    latitude: 14.5939,
-                    zoom: 15
-                  }}
-                  style={{ width: "100%", height: "100%" }}
-                  mapStyle="mapbox://styles/mapbox/dark-v11"
-                  mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-                  onClick={(e) => setCoordinates({ lat: e.lngLat.lat, lng: e.lngLat.lng })}
-                  cursor="crosshair"
-                >
-                  <Marker longitude={coordinates.lng} latitude={coordinates.lat} color="#2DD4BF" />
-                </Map>
-                <div className="absolute bottom-2 left-2 bg-black/50 text-[10px] text-white px-2 py-1 rounded backdrop-blur-sm pointer-events-none">
-                  Click map to set location
+                  {/* Location Map */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-text-secondary flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      Location
+                    </label>
+                    <div className="relative h-48 rounded-xl overflow-hidden border border-border-subtle ring-offset-background focus-within:ring-2 focus-within:ring-primary/20">
+                      <Map
+                        initialViewState={{
+                          longitude: 120.9712,
+                          latitude: 14.5939,
+                          zoom: 15,
+                        }}
+                        style={{ width: "100%", height: "100%" }}
+                        mapStyle="mapbox://styles/mapbox/dark-v11"
+                        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+                        onClick={(e) =>
+                          setCoordinates({ lat: e.lngLat.lat, lng: e.lngLat.lng })
+                        }
+                        cursor="crosshair"
+                      >
+                        <Marker
+                          longitude={coordinates.lng}
+                          latitude={coordinates.lat}
+                          color="var(--color-primary)"
+                        >
+                          <div className="relative">
+                             <div className="absolute -inset-2 bg-primary/20 rounded-full animate-ping" />
+                             <MapPin
+                                className="w-6 h-6 text-primary drop-shadow-md relative z-10"
+                                fill="currentColor"
+                             />
+                          </div>
+                        </Marker>
+                      </Map>
+                      <div className="absolute bottom-2 left-2 right-2 bg-surface/90 backdrop-blur-md text-[10px] font-mono text-text-secondary px-3 py-1.5 rounded-md border border-border-subtle flex justify-between">
+                         <span>Lat: {coordinates.lat.toFixed(5)}</span>
+                         <span>Lng: {coordinates.lng.toFixed(5)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Input Data */}
+                <div className="space-y-5">
+                  <div className="space-y-4 bg-surface-elevated/30 p-4 rounded-xl border border-border-subtle/50">
+                    <div className="space-y-2">
+                      <label htmlFor="material-type" className="text-sm font-medium text-text-secondary">
+                        Material Type
+                      </label>
+                      <Select
+                        name="type"
+                        value={selectedType}
+                        onValueChange={setSelectedType}
+                      >
+                        <SelectTrigger className="w-full bg-surface-elevated border-border-subtle h-11">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Concrete Rubble">Concrete Rubble</SelectItem>
+                          <SelectItem value="Timber Beams">Timber Beams</SelectItem>
+                          <SelectItem value="Metal Scraps">Metal Scraps</SelectItem>
+                          <SelectItem value="Plastic Sheeting">Plastic Sheeting</SelectItem>
+                          <SelectItem value="Water (Potable)">Water (Potable)</SelectItem>
+                          <SelectItem value="Fuel (Diesel)">Fuel (Diesel)</SelectItem>
+                          <SelectItem value="Aggregates">Aggregates</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="quantity" className="text-sm font-medium text-text-secondary">
+                         Quantity
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          id="quantity"
+                          type="number"
+                          name="currentAmount"
+                          required
+                          min="0"
+                          step="0.01"
+                          className="flex-1 h-11 bg-surface-elevated border border-border-subtle rounded-lg px-4 text-text-primary font-mono placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                          placeholder="0.00"
+                        />
+                        <div className="w-24 h-11 bg-surface border border-border-subtle rounded-lg flex items-center justify-center text-sm font-mono text-text-muted select-none">
+                          {unitMap[selectedType] || "kg"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                       <label htmlFor="location-text" className="text-sm font-medium text-text-secondary">
+                          Location Detail
+                       </label>
+                       <input
+                          id="location-text"
+                          type="text"
+                          name="location"
+                          required
+                          className="w-full h-11 bg-surface-elevated border border-border-subtle rounded-lg px-4 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                          placeholder="e.g., Sector A, North Wall"
+                        />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                       <label htmlFor="required-amount" className="text-sm font-medium text-text-secondary">
+                          Required Target
+                       </label>
+                       <span className="text-xs text-text-muted bg-surface-elevated px-2 py-0.5 rounded-full border border-border-subtle">Optional</span>
+                    </div>
+                    <input
+                      id="required-amount"
+                      type="number"
+                      name="requiredAmount"
+                      min="0"
+                      step="0.01"
+                      className="w-full h-11 bg-surface-elevated border border-border-subtle rounded-lg px-4 text-text-primary font-mono placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      placeholder="Target quantity needed"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="notes" className="text-sm font-medium text-text-secondary">
+                       Notes
+                    </label>
+                    <textarea
+                      id="notes"
+                      name="description"
+                      className="w-full bg-surface-elevated border border-border-subtle rounded-lg px-4 py-3 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none min-h-[100px]"
+                      placeholder="Condition, accessibility, or other details..."
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="text-[10px] text-text-muted font-mono flex justify-between">
-                <span>Lat: {coordinates.lat.toFixed(6)}</span>
-                <span>Lng: {coordinates.lng.toFixed(6)}</span>
-              </div>
+            </ScrollArea>
+            
+            <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-border-subtle">
+               <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsOpen(false)}
+               >
+                  Cancel
+               </Button>
+               <Button
+                  type="submit"
+                  disabled={submitting || !imageFile}
+                  isLoading={submitting}
+                  className="min-w-[120px]"
+               >
+                  {submitting ? "Saving..." : "Save Material"}
+               </Button>
             </div>
-          </div>
-
-          {/* Required Units */}
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">
-              Required Units
-            </label>
-            <input
-              type="number"
-              name="requiredAmount"
-              className="w-full h-11 bg-surface-elevated border border-border-subtle rounded-lg px-4 py-2 text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="Target amount needed"
-              style={{
-                backgroundColor: "#1E2D21",
-                borderColor: "#2A3D2E",
-                borderRadius: "8px",
-                minHeight: "44px"
-              }}
-            />
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">
-              Notes <span className="text-text-muted">(Optional)</span>
-            </label>
-            <textarea
-              name="description"
-              className="w-full bg-surface-elevated border border-border-subtle rounded-lg px-4 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-              placeholder="Additional details about the material..."
-              rows={3}
-              style={{
-                backgroundColor: "#1E2D21",
-                borderColor: "#2A3D2E",
-                borderRadius: "8px"
-              }}
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="pt-4 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="px-6 py-2.5 text-sm font-semibold text-text-secondary hover:text-text-primary transition-colors"
-              style={{ minHeight: "40px" }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-text-inverse font-semibold rounded-lg shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-98 disabled:opacity-50"
-              style={{
-                backgroundColor: "#2DD4BF",
-                borderRadius: "8px",
-                minHeight: "40px"
-              }}
-            >
-              {submitting ? "Saving..." : "Save Entry"}
-            </button>
-          </div>
-        </form>
-      </Modal>    </>
+          </form>
+        )}
+      </Modal>
+    </>
   );
 }

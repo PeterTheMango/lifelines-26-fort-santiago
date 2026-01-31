@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef } from "react";
 import Map, { Marker, MapRef, NavigationControl } from "react-map-gl/mapbox";
-import { fetchInventory, Material } from "@/lib/api";
+import { Material } from "@/lib/api";
 import { Package, X, Info, Hammer, Droplet, Fuel, Layout, Truck, Clock } from "lucide-react";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -11,29 +11,17 @@ const CENTER = { lat: 14.5939, lng: 120.9712 }; // Fort Santiago
 
 interface InventoryMapViewProps {
     className?: string;
+    inventory: Material[];
 }
 
-export function InventoryMapView({ className }: InventoryMapViewProps) {
+export function InventoryMapView({ className, inventory }: InventoryMapViewProps) {
     const mapRef = useRef<MapRef>(null);
-    const [inventory, setInventory] = useState<Material[]>([]);
     const [selectedItem, setSelectedItem] = useState<Material | null>(null);
     const [viewState, setViewState] = useState({
         latitude: CENTER.lat,
         longitude: CENTER.lng,
         zoom: 16
     });
-
-    useEffect(() => {
-        async function loadData() {
-            try {
-                const data = await fetchInventory();
-                setInventory(data);
-            } catch (error) {
-                console.error("Failed to load map data:", error);
-            }
-        }
-        loadData();
-    }, []);
 
     // Calculate bar visualizations
     const getBarStats = (item: Material) => {

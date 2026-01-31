@@ -1,5 +1,3 @@
-"use client";
-
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StockChart } from "@/components/dashboard/StockChart";
@@ -7,8 +5,34 @@ import { NetworkHealthMap } from "@/components/dashboard/NetworkHealthMap";
 import { InventorySummary } from "@/components/dashboard/InventorySummary";
 import { AIArchitectQuickAccess } from "@/components/dashboard/AIArchitectQuickAccess";
 import { Box, Activity, Radio, DollarSign } from "lucide-react";
+import { fetchDashboardStats } from "@/lib/api";
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  // Fetch dashboard stats from the database
+  let stats;
+  try {
+    stats = await fetchDashboardStats();
+  } catch (error) {
+    console.error("Failed to fetch dashboard stats:", error);
+    // Fallback to default values if fetch fails
+    stats = {
+      totalResources: 0,
+      activeMesh: { online: 0, total: 14 },
+      estValue: 0,
+      activeAlerts: 0,
+    };
+  }
+
+  // Format values for display
+  const formattedResources = stats.totalResources.toLocaleString();
+  const activeMeshValue = `${stats.activeMesh.online}/${stats.activeMesh.total}`;
+  const formattedValue = `$${(stats.estValue / 1000).toFixed(1)}k`;
+  const alertsValue = stats.activeAlerts.toString();
+
+  // Determine status based on data
+  const meshStatus = stats.activeMesh.online === stats.activeMesh.total ? "normal" : "warning";
+  const alertStatus = stats.activeAlerts === 0 ? "normal" : stats.activeAlerts > 5 ? "critical" : "warning";
+
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       {/* Page Header */}
@@ -29,31 +53,31 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-4 lg:mb-6">
           <StatsCard
             title="Total Resources"
-            value="1,248"
+            value={formattedResources}
             label="units tracked"
             icon={Box}
             status="normal"
           />
           <StatsCard
             title="Active Mesh"
-            value="12/14"
+            value={activeMeshValue}
             label="nodes online"
             icon={Radio}
-            status="warning"
+            status={meshStatus}
           />
           <StatsCard
             title="Est. Value"
-            value="$46.7k"
+            value={formattedValue}
             label="scavenged assets"
             icon={DollarSign}
             status="normal"
           />
           <StatsCard
             title="Active Alerts"
-            value="3"
+            value={alertsValue}
             label="critical issues"
             icon={Activity}
-            status="critical"
+            status={alertStatus}
           />
         </div>
 

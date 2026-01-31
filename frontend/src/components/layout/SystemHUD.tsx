@@ -1,11 +1,22 @@
 "use client";
 
-import { Battery, Wifi, Activity } from "lucide-react";
+import { Battery, Wifi, Activity, Menu } from "lucide-react";
+import { useSidebar } from "@/context/SidebarContext";
 
 export function SystemHUD() {
+    const { toggleMobileSidebar } = useSidebar();
+
     return (
-        <header className="h-16 bg-background border-b border-border-subtle flex items-center justify-between px-6">
+        <header className="h-16 bg-background border-b border-border-subtle flex items-center justify-between px-4 md:px-6">
             <div className="flex items-center space-x-4">
+                <button
+                    onClick={toggleMobileSidebar}
+                    className="md:hidden text-text-secondary hover:text-primary focus:outline-none"
+                    aria-label="Toggle menu"
+                >
+                    <Menu className="h-6 w-6" />
+                </button>
+
                 {/* Breadcrumb or Title placeholder */}
                 <div className="flex items-center space-x-2">
                     <Activity className="h-5 w-5 text-success animate-pulse" />

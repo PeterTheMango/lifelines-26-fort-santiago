@@ -1,8 +1,8 @@
 "use client";
 
 import { Clock, Search, ChevronDown, MapPin } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
-import { fetchInventory, Material } from "@/lib/api";
+import { useState, useMemo, useEffect } from "react";
+import { Material } from "@/lib/api";
 
 interface GroupedMaterial {
   type: string;
@@ -17,25 +17,10 @@ interface GroupedMaterial {
 
 interface InventoryTableProps {
   selectedCategory?: string;
+  inventory: Material[];
 }
 
-export function InventoryTable({ selectedCategory = "all" }: InventoryTableProps) {
-  const [inventory, setInventory] = useState<Material[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const data = await fetchInventory();
-        setInventory(data);
-      } catch (error) {
-        console.error("Failed to load inventory:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+export function InventoryTable({ selectedCategory = "all", inventory }: InventoryTableProps) {
 
   // Filter inventory based on selected category
   const filteredInventory = selectedCategory === "all"

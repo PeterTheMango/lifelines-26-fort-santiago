@@ -37,3 +37,20 @@ export async function createInventoryItem(item: any): Promise<Material> {
     }
     return response.json();
 }
+
+export interface DashboardStats {
+    totalResources: number;
+    activeMesh: { online: number; total: number };
+    estValue: number;
+    activeAlerts: number;
+}
+
+export async function fetchDashboardStats(): Promise<DashboardStats> {
+    const response = await fetch(`${API_URL}/dashboard/stats`, {
+        cache: 'no-store',
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch dashboard stats');
+    }
+    return response.json();
+}

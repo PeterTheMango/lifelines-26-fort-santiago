@@ -3,30 +3,17 @@
 import { AlertTriangle, Package, TrendingUp, AlertCircle, Plus, FileDown, RefreshCw, Layers, Droplet, Fuel } from "lucide-react";
 import { InventoryTable } from "@/components/inventory/InventoryTable";
 import { AddMaterialModal } from "@/components/inventory/AddMaterialModal";
-import { useState, useEffect } from "react";
-import { fetchInventory } from "@/lib/api";
+import { useState } from "react";
+import { Material } from "@/lib/api";
+
 interface InventoryListViewProps {
     className?: string;
+    inventory: Material[];
 }
 
-
-
-export function InventoryListView({ className }: InventoryListViewProps) {
-    const [inventory, setInventory] = useState<any[]>([]);
+export function InventoryListView({ className, inventory }: InventoryListViewProps) {
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
     const [dismissedAlerts, setDismissedAlerts] = useState<number[]>([]);
-
-    useEffect(() => {
-        async function loadData() {
-            try {
-                const data = await fetchInventory();
-                setInventory(data);
-            } catch (error) {
-                console.error("Failed to load inventory for stats:", error);
-            }
-        }
-        loadData();
-    }, []);
 
     const inventoryStats = {
         totalMaterials: inventory.length,
@@ -327,7 +314,7 @@ export function InventoryListView({ className }: InventoryListViewProps) {
                 className="mt-6 animate-slide-up"
                 style={{ animationDelay: "0.3s" }}
             >
-                <InventoryTable selectedCategory={selectedCategory} />
+                <InventoryTable selectedCategory={selectedCategory} inventory={inventory} />
             </div>
         </div>
     );
