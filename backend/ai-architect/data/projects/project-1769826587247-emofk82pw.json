@@ -1,0 +1,220 @@
+{
+  "project_id": "project-1769826587247-emofk82pw",
+  "proj_title": "Rapid Timber Frame Emergency Shelter (Family of Four)",
+  "proj_desc": "A secure, weather-resistant emergency shelter designed for a family of four, utilizing a post-and-beam timber frame anchored by rubble and aggregates, and fully enclosed with plastic sheeting for privacy and protection from the elements, adhering to basic humanitarian standards for covered living space.",
+  "status": "Completed",
+  "messages": [
+    {
+      "id": "msg-1769826587247",
+      "role": "ai",
+      "content": "Hello! I'm your AI Architect. I can help you design emergency structures. Tell me, what do you need to build today?",
+      "timestamp": "2026-01-31T02:29:47.247Z",
+      "isReadyToGenerate": false,
+      "citations": []
+    },
+    {
+      "id": "msg-1769826608809-user",
+      "role": "user",
+      "content": "Help us build a shelter for a family of four with the available resources",
+      "timestamp": "2026-01-31T02:30:08.809Z",
+      "isReadyToGenerate": false,
+      "citations": []
+    },
+    {
+      "id": "msg-1769826608862-ai",
+      "role": "ai",
+      "content": "This is a great goal, as individual family shelters are preferred for privacy and psychological comfort. To design the most effective structure using the available timber frame and plastic sheeting, I need a better understanding of the primary structural components. What are the approximate dimensions (length and cross-section) of the 12 timber beams, and what is the primary climate challenge (e.g., heavy rain, high winds, or extreme cold) this shelter needs to withstand?",
+      "timestamp": "2026-01-31T02:30:13.735Z",
+      "isReadyToGenerate": false,
+      "citations": []
+    },
+    {
+      "id": "msg-1769826631577-user",
+      "role": "user",
+      "content": "4x6 meters, heavy rain",
+      "timestamp": "2026-01-31T02:30:31.577Z",
+      "isReadyToGenerate": false,
+      "citations": []
+    },
+    {
+      "id": "msg-1769826631629-ai",
+      "role": "ai",
+      "content": "The 4x6 meter footprint provides ample space for a family of four, and focusing on heavy rain means prioritizing a robust roof structure and drainage. To ensure the 4-meter span is structurally sound and to finalize the framing plan, what are the approximate dimensions (length and cross-section) of the 12 timber beams? Additionally, given the risk of heavy rain leading to localized flooding, is the shelter being built in an area prone to standing water or flash floods, requiring an elevated floor or specialized foundation?",
+      "timestamp": "2026-01-31T02:30:36.654Z",
+      "isReadyToGenerate": false,
+      "citations": []
+    },
+    {
+      "id": "msg-1769826663945-user",
+      "role": "user",
+      "content": "15ft long logs, 10x10cm cross section, needs elevated floor",
+      "timestamp": "2026-01-31T02:31:03.945Z",
+      "isReadyToGenerate": false,
+      "citations": []
+    },
+    {
+      "id": "msg-1769826663996-ai",
+      "role": "ai",
+      "content": "The 10x10 cm timber beams (4.57m long) are sufficient for constructing a robust, elevated 4x6 meter frame. We will use the Aggregates and Concrete Rubble to create nine elevated pier foundations, lifting the structure above flood level, and use the timber to construct a strongly braced floor platform and vertical supports. The remaining timber will form a steep-pitched gable roof structure to maximize heavy rain runoff, which will then be covered entirely by the 4 rolls of Plastic Sheeting, secured using the Metal Scraps to ensure waterproofing and stability against wind uplift.",
+      "timestamp": "2026-01-31T02:31:03.996Z",
+      "isReadyToGenerate": true,
+      "citations": []
+    }
+  ],
+  "steps": [
+    {
+      "step_num": 1,
+      "step_title": "Site Preparation and Foundation Leveling",
+      "step_desc": "Select a dry, level area approximately 3 meters wide by 4 meters long. Clear debris. Use 500.0 kg of Aggregates to create a packed, level base layer (approximately 5-10 cm deep) to ensure a dry floor and prevent water pooling inside the shelter footprint.",
+      "step_img_prompt": "A cleared 3x4 meter area being leveled using packed aggregates.",
+      "step_img": "http://localhost:8001/images/p_project-1769826587247-emofk82pw_s_1.png",
+      "mat_reqs": [
+        {
+          "mat_id": "Aggregates",
+          "req_amt": 500.0,
+          "unit": "kg"
+        }
+      ],
+      "tips": [
+        "Ensure the site is slightly elevated or has good drainage to prevent flooding during rain.",
+        "Compacting the aggregates firmly will improve the stability of the floor."
+      ]
+    },
+    {
+      "step_num": 2,
+      "step_title": "Anchor Installation and Post Erection",
+      "step_desc": "Dig four shallow holes (approximately 0.5m deep) at the corners of the 3m x 4m footprint. Place 4 Timber Beams vertically into these holes to serve as corner posts. Use 400.0 kg of Concrete Rubble and 50.0 kg of Metal Scraps to backfill and pack around the base of the posts, providing ballast and structural anchoring against wind uplift. Ensure posts are plumb.",
+      "step_img_prompt": "Four vertical timber beams anchored into the ground using concrete rubble and metal scraps as ballast.",
+      "step_img": "http://localhost:8001/images/p_project-1769826587247-emofk82pw_s_2.png",
+      "mat_reqs": [
+        {
+          "mat_id": "Timber Beams",
+          "req_amt": 4.0,
+          "unit": "units"
+        },
+        {
+          "mat_id": "Concrete Rubble",
+          "req_amt": 400.0,
+          "unit": "kg"
+        },
+        {
+          "mat_id": "Metal Scraps",
+          "req_amt": 50.0,
+          "unit": "kg"
+        }
+      ],
+      "tips": [
+        "The height of the posts should be uniform, aiming for a minimum of 2.2 meters for adequate head clearance.",
+        "Use the Metal Scraps as heavy wire or strapping to secure the posts temporarily while backfilling."
+      ]
+    },
+    {
+      "step_num": 3,
+      "step_title": "Constructing the Perimeter and Roof Frame",
+      "step_desc": "Use 4 Timber Beams to create the top perimeter frame (two 4m beams and two 3m beams). Lash these beams securely to the top of the corner posts using remaining Metal Scraps. Install the final 4 Timber Beams as roof supports (rafters or cross-bracing) to create a stable structure capable of supporting the plastic sheeting roof.",
+      "step_img_prompt": "A completed timber frame structure (3x4m rectangle) with corner posts and roof cross-bracing, secured with metal scrap lashing.",
+      "step_img": "http://localhost:8001/images/p_project-1769826587247-emofk82pw_s_3.png",
+      "mat_reqs": [
+        {
+          "mat_id": "Timber Beams",
+          "req_amt": 8.0,
+          "unit": "units"
+        },
+        {
+          "mat_id": "Metal Scraps",
+          "req_amt": 30.0,
+          "unit": "kg"
+        }
+      ],
+      "tips": [
+        "Ensure the roof beams create a slight slope (pitch) to allow rainwater runoff, preventing pooling and structural stress.",
+        "Lashing must be tight and redundant to ensure the frame remains rigid."
+      ]
+    },
+    {
+      "step_num": 4,
+      "step_title": "Roof and Wall Weatherproofing",
+      "step_desc": "Unroll 2 rolls of Plastic Sheeting and cover the roof structure completely, overlapping edges significantly to prevent leaks. Secure the sheeting by placing remaining Concrete Rubble (50.0 kg) along the edges and ridge lines as ballast. Use 1 roll of Plastic Sheeting to cover three of the four walls, lashing them to the timber frame using remaining Metal Scraps or tying them down with heavy Aggregates at the base. Leave one 3m side open for entry.",
+      "step_img_prompt": "Plastic sheeting covering the roof and three walls of the timber frame, secured with rubble weights.",
+      "step_img": null,
+      "mat_reqs": [
+        {
+          "mat_id": "Plastic Sheeting",
+          "req_amt": 3.0,
+          "unit": "rolls"
+        },
+        {
+          "mat_id": "Concrete Rubble",
+          "req_amt": 50.0,
+          "unit": "kg"
+        },
+        {
+          "mat_id": "Metal Scraps",
+          "req_amt": 5.0,
+          "unit": "kg"
+        }
+      ],
+      "tips": [
+        "The plastic sheeting provides essential protection from climate, privacy, and security, as mandated by the context.",
+        "Ensure the plastic extends past the base of the walls to divert water away from the shelter footprint."
+      ]
+    },
+    {
+      "step_num": 5,
+      "step_title": "Internal Flooring and Entry Flap",
+      "step_desc": "Spread the remaining 700.0 kg of Aggregates inside the shelter to create a thick, dry, and insulating floor layer. Use the final 1 roll of Plastic Sheeting to create a secure entry flap for the open wall, ensuring privacy and protection. The flap should overlap the wall edges significantly and can be secured closed using small pieces of Metal Scraps or Rubble as weights.",
+      "step_img_prompt": "Interior view of the shelter showing a packed aggregate floor and a plastic sheeting door flap covering the entrance.",
+      "step_img": "http://localhost:8001/images/p_project-1769826587247-emofk82pw_s_5.png",
+      "mat_reqs": [
+        {
+          "mat_id": "Aggregates",
+          "req_amt": 700.0,
+          "unit": "kg"
+        },
+        {
+          "mat_id": "Plastic Sheeting",
+          "req_amt": 1.0,
+          "unit": "rolls"
+        }
+      ],
+      "tips": [
+        "The aggregate floor helps maintain hygiene and reduces the risk of ill health and disease by preventing direct contact with damp ground.",
+        "Ensure the entry flap is easily operable for quick entry/exit but provides full privacy when closed."
+      ]
+    }
+  ],
+  "final_img_prompt": "Wide shot of the completed emergency shelter: a sturdy 3x4 meter timber frame structure covered entirely in white plastic sheeting, anchored securely to the ground with rubble and aggregates, providing a private and dignified living space for a family of four.",
+  "final_img": "http://localhost:8001/images/p_project-1769826587247-emofk82pw_final.png",
+  "materials": [
+    {
+      "material": "Concrete Rubble",
+      "status": "used"
+    },
+    {
+      "material": "Timber Beams",
+      "status": "used"
+    },
+    {
+      "material": "Water (Potable)",
+      "status": "held"
+    },
+    {
+      "material": "Metal Scraps",
+      "status": "used"
+    },
+    {
+      "material": "Plastic Sheeting",
+      "status": "used"
+    },
+    {
+      "material": "Aggregates",
+      "status": "used"
+    },
+    {
+      "material": "Fuel (Diesel)",
+      "status": "held"
+    }
+  ],
+  "created_at": "2026-01-31T02:29:47.247Z",
+  "updated_at": "2026-01-31T05:32:04.116079"
+}

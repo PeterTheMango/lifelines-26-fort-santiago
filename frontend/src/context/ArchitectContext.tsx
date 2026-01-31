@@ -13,11 +13,25 @@ import type {
   ArchitectContextValue,
   ArchitectUIState,
   ArchitectFlowState,
+  InventoryItem,
 } from '@/types/architect';
 
 import * as storage from '@/services/projectStorage';
 import { generateAIResponse, getInitialGreeting, canGenerateBlueprint } from '@/services/mockAI';
 import { generateBlueprint } from '@/services/planGenerator';
+
+// Helper for emojis
+function getEmojiForMaterial(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes('rubble') || n.includes('concrete') || n.includes('stone')) return '🪨';
+  if (n.includes('wood') || n.includes('timber') || n.includes('lumber')) return '🪵';
+  if (n.includes('tire')) return '🛞';
+  if (n.includes('metal') || n.includes('steel') || n.includes('iron')) return '🏗️';
+  if (n.includes('fabric') || n.includes('tarp') || n.includes('cloth')) return '🎪';
+  if (n.includes('plastic') || n.includes('bottle')) return '🍾';
+  if (n.includes('water')) return '💧';
+  return '📦';
+}
 
 // ============================================================================
 // Context Creation
@@ -35,6 +49,7 @@ const INITIAL_UI_STATE: ArchitectUIState = {
   currentStepIndex: 0,
   isGenerateButtonVisible: false,
   generationProgress: 0,
+  generationStatusMessage: '',
   showCompletionModal: false,
 };
 
@@ -53,6 +68,7 @@ export function ArchitectProvider({ children }: ArchitectProviderProps) {
   const [uiState, setUiState] = useState<ArchitectUIState>(INITIAL_UI_STATE);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
 
   // ============================================================================
   // Project Actions
@@ -74,6 +90,49 @@ export function ArchitectProvider({ children }: ArchitectProviderProps) {
       console.error('Load projects error:', err);
     } finally {
       setIsLoading(false);
+    }
+  }, []);
+
+  /**
+   * Load inventory from backend service
+   */
+  const loadInventory = useCallback(async () => {
+    try {
+      // Direct call to inventory service through proxy or direct fetch
+      // Assuming a proxy setup or direct call if allowed (CORS)
+      // For now, we'll try to fetch from the inventory service directly or mock if fails
+      // In a real setup, this might go through the Architect backend -> Inventory Service
+
+      // Using Architect backend as proxy since it's already integrated? 
+      // Current Architect backend 'fetch_inventory' is internal.
+      // Let's try fetching directly from localhost:8000 for now, or mock if it fails 
+      // (similar to how we did with Architect backend)
+
+      const response = await fetch('http://localhost:8000/items');
+      if (!response.ok) throw new Error('Failed to fetch inventory');
+
+      const data = await response.json();
+
+      // Map backend data to frontend InventoryItem
+      const mappedInventory: InventoryItem[] = data.map((item: any) => ({
+        id: item.item_id,
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity,
+        unit: item.unit,
+        emoji: getEmojiForMaterial(item.name) // Helper to assign emojis
+      }));
+
+      setInventory(mappedInventory);
+    } catch (err) {
+      console.warn('Failed to load real inventory, using fallback:', err);
+      // Fallback mock data if service is unavailable
+      setInventory([
+        { id: '1', name: "Concrete Rubble", category: "Raw", quantity: 500, unit: "kg", emoji: "🪨" },
+        { id: '2', name: "Timber Beams", category: "Construction", quantity: 25, unit: "pcs", emoji: "🪵" },
+        { id: '3', name: "Used Tires", category: "Raw", quantity: 60, unit: "pcs", emoji: "🛞" },
+        { id: '4', name: "Corrugated Metal", category: "Construction", quantity: 15, unit: "sheets", emoji: "🏗️" },
+      ]);
     }
   }, []);
 
@@ -221,6 +280,9 @@ export function ArchitectProvider({ children }: ArchitectProviderProps) {
   /**
    * Send a user message and get AI response
    */
+  /**
+   * Send a user message and get AI response (Streamed)
+   */
   const sendMessage = useCallback(
     async (content: string) => {
       if (!currentProject) {
@@ -231,7 +293,7 @@ export function ArchitectProvider({ children }: ArchitectProviderProps) {
       setError(null);
 
       try {
-        // Create user message
+        // 1. Create and add USER message
         const userMessage: ChatMessage = {
           id: `msg-${Date.now()}-user`,
           role: 'user',
@@ -239,24 +301,100 @@ export function ArchitectProvider({ children }: ArchitectProviderProps) {
           timestamp: new Date().toISOString(),
         };
 
-        // Add user message to project
-        let updated = await storage.addMessageToProject(currentProject.id, userMessage);
+        const projectWithUserMsg = await storage.addMessageToProject(currentProject.id, userMessage);
 
-        // Generate AI response
-        const aiResponse = await generateAIResponse(content, updated);
+        // Update UI immediately
+        setCurrentProject(projectWithUserMsg);
+        setProjects(prev => prev.map(p => (p.id === projectWithUserMsg.id ? projectWithUserMsg : p)));
 
-        // Add AI message to project
-        updated = await storage.addMessageToProject(currentProject.id, aiResponse.message);
+        // 2. Create placeholder AI message
+        const aiMessageId = `msg-${Date.now()}-ai`;
+        const initialAiMessage: ChatMessage = {
+          id: aiMessageId,
+          role: 'ai',
+          content: '', // Start empty
+          timestamp: new Date().toISOString(),
+          isReadyToGenerate: false
+        };
 
-        // Update state
-        setCurrentProject(updated);
-        setProjects(prev => prev.map(p => (p.id === updated.id ? updated : p)));
+        // Add placeholder AI message to storage/state
+        // We need it in the list so the UI renders the bubble
+        let projectWithAiMsg = await storage.addMessageToProject(projectWithUserMsg.id, initialAiMessage);
+        setCurrentProject(projectWithAiMsg);
+        setProjects(prev => prev.map(p => (p.id === projectWithAiMsg.id ? projectWithAiMsg : p)));
 
-        // Update generate button visibility
+        // 3. Start Streaming
+        // We need to import streamAIResponse. 
+        // Note: Dynamic import or ensure it is imported at top of file.
+        // Assuming it is exported from @/services/mockAI
+        const { streamAIResponse } = await import('@/services/mockAI');
+
+        let accumulatedContent = '';
+        let isReady = false;
+
+        for await (const chunk of streamAIResponse(content, projectWithUserMsg)) {
+          accumulatedContent += chunk;
+
+          // Check for [[READY]] token
+          if (accumulatedContent.includes('[[READY]]')) {
+            isReady = true;
+            // Remove the token for display
+            accumulatedContent = accumulatedContent.replace('[[READY]]', '').trim();
+          }
+
+          // Update the message content in real-time
+          // We modify the last message of the project
+          // Optimization: Local state update for speed, then persist at end?
+          // For now, let's update state directly. Storage updates might be too slow for every token.
+
+          setCurrentProject(prev => {
+            if (!prev) return null;
+            const newMessages = [...prev.messages];
+            const lastMsgIndex = newMessages.findIndex(m => m.id === aiMessageId);
+            if (lastMsgIndex !== -1) {
+              newMessages[lastMsgIndex] = {
+                ...newMessages[lastMsgIndex],
+                content: accumulatedContent,
+                isReadyToGenerate: isReady
+              };
+            }
+            return { ...prev, messages: newMessages };
+          });
+        }
+
+        // 4. Final Finalize
+        // Save the full message to storage
+        const finalAiMessage: ChatMessage = {
+          id: aiMessageId,
+          role: 'ai',
+          content: accumulatedContent,
+          timestamp: new Date().toISOString(),
+          isReadyToGenerate: isReady
+        };
+
+        // We technically already added it, but with empty content. 
+        // storage.addMessageToProject appends. We probably need an updateMessage method or just re-save the project.
+        // Since storage is likely simple JSON, let's just update the project.
+
+        // Ensure "isGenerateButtonVisible" is updated
         setUiState(prev => ({
           ...prev,
-          isGenerateButtonVisible: aiResponse.shouldShowGenerateButton || false,
+          isGenerateButtonVisible: isReady
         }));
+
+        // Persist final state
+        // We can just fetch the latest currentProject from state (which has the content) or reconstruct it.
+        // Ideally we update storage.
+        // Assuming storage has an updateProject method that takes full project or partial.
+
+        // Let's reload or re-save to ensure persistence
+        // A simple way is to force an update of the messages list
+        const messagesToSave = projectWithAiMsg.messages.map(m =>
+          m.id === aiMessageId ? finalAiMessage : m
+        );
+
+        await storage.updateProject(currentProject.id, { messages: messagesToSave });
+
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to send message';
         setError(message);
@@ -305,10 +443,11 @@ export function ArchitectProvider({ children }: ArchitectProviderProps) {
       await storage.updateProject(currentProject.id, { status: 'generating' });
 
       // Generate blueprint with progress updates
-      const result = await generateBlueprint(currentProject, (progress: number) => {
+      const result = await generateBlueprint(currentProject, inventory, (progress: number, message: string) => {
         setUiState(prev => ({
           ...prev,
           generationProgress: progress,
+          generationStatusMessage: message,
         }));
       });
 
@@ -438,7 +577,8 @@ export function ArchitectProvider({ children }: ArchitectProviderProps) {
   // Load projects on mount
   useEffect(() => {
     loadProjects();
-  }, [loadProjects]);
+    loadInventory();
+  }, [loadProjects, loadInventory]);
 
   // ============================================================================
   // Context Value
@@ -451,6 +591,7 @@ export function ArchitectProvider({ children }: ArchitectProviderProps) {
     uiState,
     isLoading,
     error,
+    inventory,
 
     // Project Actions
     loadProjects,
